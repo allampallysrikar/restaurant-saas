@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { auth } from "../lib/auth";
 import { prisma } from '../lib/prisma';
+import { auth } from "../lib/auth";
 
 async function main() {
   console.log("Creating admin staff user...");

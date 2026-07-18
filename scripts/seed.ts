@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma';
 import "dotenv/config";
+import { prisma } from '../lib/prisma';
 
 async function main() {
   console.log("Seeding database...");
