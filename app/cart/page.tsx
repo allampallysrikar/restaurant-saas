@@ -9,10 +9,17 @@ export default function CartPage() {
   const { items, updateQuantity, removeItem, total, clearCart } = useCartStore();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const cartTotal = total();
   const tax = cartTotal * 0.08; // 8% tax mock
   const finalTotal = cartTotal + tax;
+
+  if (!mounted) return null;
 
   const handleCheckout = () => {
     setIsCheckingOut(true);
