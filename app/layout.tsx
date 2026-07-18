@@ -24,7 +24,6 @@ export default function RootLayout({
             <div className="font-bold text-xl tracking-tight">XYZ Restaurant.</div>
             <div className="space-x-6 text-sm font-medium text-gray-300 flex items-center">
               <a href="/menu" className="hover:text-white transition">Menu</a>
-              <a href="#" className="hover:text-white transition">Reservations</a>
               <CartBadge />
             </div>
           </div>

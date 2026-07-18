@@ -5,11 +5,17 @@ import { Check, X, Clock, Printer } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminOrdersPage() {
-  const orders = [
-    { id: "ORD-9382", customer: "Liam Johnson", items: [{name: "Truffle Arancini", qty: 2}, {name: "Wagyu Ribeye", qty: 1}], total: 145.00, status: "Preparing", time: "10:42 AM", type: "Dine-in (Table 4)" },
-    { id: "ORD-9381", customer: "Emma Williams", items: [{name: "Lobster Ravioli", qty: 1}], total: 34.00, status: "Ready", time: "10:15 AM", type: "Takeaway" },
-    { id: "ORD-9380", customer: "Noah Brown", items: [{name: "Matcha Tiramisu", qty: 4}, {name: "Espresso", qty: 2}], total: 210.50, status: "Pending", time: "10:55 AM", type: "Delivery" },
-  ];
+  const [orders, setOrders] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    import("@/app/actions/orders").then(m => m.getLiveOrders().then(data => setOrders(data)));
+  }, []);
+
+  const updateStatus = async (id: string, status: string) => {
+    setOrders(orders.map(o => o.id === id ? { ...o, status } : o));
+    const m = await import("@/app/actions/orders");
+    await m.updateOrderStatus(id, status);
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -34,42 +40,42 @@ export default function AdminOrdersPage() {
               <div className="flex justify-between items-start mb-4 border-b border-white/10 pb-4">
                 <div>
                   <div className="flex items-center space-x-3 mb-1">
-                    <h3 className="text-lg font-bold">{order.id}</h3>
+                    <h3 className="text-lg font-bold">{order.id.slice(-8).toUpperCase()}</h3>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                      order.status === 'Preparing' ? 'bg-orange-400/10 text-orange-400 border-orange-400/20' : 
-                      order.status === 'Ready' ? 'bg-blue-400/10 text-blue-400 border-blue-400/20' : 
+                      order.status === 'PREPARING' ? 'bg-orange-400/10 text-orange-400 border-orange-400/20' : 
+                      order.status === 'READY' ? 'bg-blue-400/10 text-blue-400 border-blue-400/20' : 
                       'bg-yellow-400/10 text-yellow-400 border-yellow-400/20'
                     }`}>
                       {order.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-400">{order.customer} • {order.type} • {order.time}</p>
+                  <p className="text-sm text-gray-400">{order.userId || "Guest"} • {new Date(order.createdAt).toLocaleTimeString()}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-bold">${order.total.toFixed(2)}</p>
-                  <p className="text-xs text-gray-500">Paid via Razorpay</p>
+                  <p className="text-xl font-bold">${order.totalAmount.toFixed(2)}</p>
+                  <p className="text-xs text-gray-500">Paid Demo Checkout</p>
                 </div>
               </div>
 
               <div className="mb-6">
                 <ul className="space-y-2">
-                  {order.items.map((item, idx) => (
+                  {order.items.map((item: any, idx: number) => (
                     <li key={idx} className="flex justify-between text-sm">
-                      <span className="text-gray-300"><span className="text-gray-500 mr-2">{item.qty}x</span> {item.name}</span>
+                      <span className="text-gray-300"><span className="text-gray-500 mr-2">{item.quantity}x</span> {item.menuItem.name}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
               <div className="flex space-x-3">
-                <button className="flex-1 py-2 bg-white text-black font-medium rounded-lg hover:bg-gray-200 transition flex items-center justify-center">
+                <button onClick={() => updateStatus(order.id, "READY")} className="flex-1 py-2 bg-white text-black font-medium rounded-lg hover:bg-gray-200 transition flex items-center justify-center">
                   <Check className="w-4 h-4 mr-2" /> Mark Ready
                 </button>
-                <button className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition">
-                  <Printer className="w-4 h-4" />
+                <button onClick={() => updateStatus(order.id, "DELIVERED")} className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition">
+                  <Printer className="w-4 h-4" /> Delivered
                 </button>
-                <button className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition">
-                  <X className="w-4 h-4" />
+                <button onClick={() => updateStatus(order.id, "CANCELLED")} className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition">
+                  <X className="w-4 h-4" /> Cancel
                 </button>
               </div>
             </motion.div>

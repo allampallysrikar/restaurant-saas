@@ -5,21 +5,22 @@ import { useCartStore } from "@/features/cart/store";
 import { Plus, Search, Filter } from "lucide-react";
 import { motion } from "framer-motion";
 
-const MOCK_CATEGORIES = ["All", "Starters", "Mains", "Desserts", "Beverages"];
-const MOCK_MENU = [
-  { id: "1", name: "Truffle Arancini", description: "Crispy risotto balls with black truffle and mozzarella.", price: 18, category: "Starters", image: "https://images.unsplash.com/photo-1541529086526-db283c563270?w=500&q=80" },
-  { id: "2", name: "Wagyu Ribeye", description: "A5 Grade Wagyu beef with roasted root vegetables.", price: 85, category: "Mains", image: "https://images.unsplash.com/photo-1544025162-83b3e21e4281?w=500&q=80" },
-  { id: "3", name: "Lobster Ravioli", description: "Handmade pasta stuffed with fresh lobster in saffron cream sauce.", price: 34, category: "Mains", image: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=500&q=80" },
-  { id: "4", name: "Matcha Tiramisu", description: "Traditional Italian dessert with a Japanese twist.", price: 14, category: "Desserts", image: "https://images.unsplash.com/photo-1571115177098-24de63f25c27?w=500&q=80" },
-];
+
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [menuItems, setMenuItems] = useState<any[]>([]);
   const addItem = useCartStore((state) => state.addItem);
 
-  const filteredMenu = MOCK_MENU.filter((item) => {
-    const matchesCategory = activeCategory === "All" || item.category === activeCategory;
+  React.useEffect(() => {
+    import("@/app/actions/menu").then(m => m.getLiveMenu().then(data => setMenuItems(data)));
+  }, []);
+
+  const MOCK_CATEGORIES = ["All", ...Array.from(new Set(menuItems.map(i => i.category.name)))];
+
+  const filteredMenu = menuItems.filter((item) => {
+    const matchesCategory = activeCategory === "All" || item.category?.name === activeCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });

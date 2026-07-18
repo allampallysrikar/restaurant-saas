@@ -21,14 +21,26 @@ export default function CartPage() {
 
   if (!mounted) return null;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     setIsCheckingOut(true);
     // Simulate Razorpay mock payment delay
-    setTimeout(() => {
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    
+    // Call server action to create order
+    const { createOrder } = await import("@/app/actions/orders");
+    const res = await createOrder(
+      items.map(i => ({ id: i.id, quantity: i.quantity, price: i.price })),
+      finalTotal
+    );
+
+    if (res.success) {
       setIsCheckingOut(false);
       setPaymentSuccess(true);
       clearCart();
-    }, 2500);
+    } else {
+      setIsCheckingOut(false);
+      alert("Failed to process order.");
+    }
   };
 
   if (paymentSuccess) {
@@ -137,7 +149,7 @@ export default function CartPage() {
               </button>
               
               <p className="text-xs text-gray-500 text-center mt-6 flex items-center justify-center">
-                <ShieldCheck className="w-3 h-3 mr-1" /> Secure checkout powered by Razorpay (Mock)
+                <ShieldCheck className="w-3 h-3 mr-1" /> Demo checkout — no real payment processed.
               </p>
             </div>
           </div>

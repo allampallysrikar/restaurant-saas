@@ -1,7 +1,19 @@
 import React from "react";
 import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Settings, LogOut, Users } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  // Strict role check for staff only
+  if (!session || session.user.role !== "STAFF") {
+    redirect("/");
+  }
+
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden">
       {/* Sidebar */}

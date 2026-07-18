@@ -5,15 +5,17 @@ import { Plus, Search, Edit2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminMenuPage() {
-  const [menuItems, setMenuItems] = useState([
-    { id: "1", name: "Truffle Arancini", category: "Starters", price: 18.00, available: true },
-    { id: "2", name: "Wagyu Ribeye", category: "Mains", price: 85.00, available: true },
-    { id: "3", name: "Lobster Ravioli", category: "Mains", price: 34.00, available: false },
-    { id: "4", name: "Matcha Tiramisu", category: "Desserts", price: 14.00, available: true },
-  ]);
+  const [menuItems, setMenuItems] = useState<any[]>([]);
 
-  const toggleAvailability = (id: string) => {
-    setMenuItems(menuItems.map(item => item.id === id ? { ...item, available: !item.available } : item));
+  React.useEffect(() => {
+    import("@/app/actions/menu").then(m => m.getLiveMenu().then(data => setMenuItems(data)));
+  }, []);
+
+  const toggleAvailability = async (id: string, currentStatus: boolean) => {
+    // Optimistic update
+    setMenuItems(menuItems.map(item => item.id === id ? { ...item, isAvailable: !currentStatus } : item));
+    const m = await import("@/app/actions/menu");
+    await m.toggleMenuItemAvailability(id, !currentStatus);
   };
 
   return (
@@ -61,14 +63,14 @@ export default function AdminMenuPage() {
                   className="hover:bg-white/5 transition-colors"
                 >
                   <td className="px-6 py-4 font-medium text-white">{item.name}</td>
-                  <td className="px-6 py-4 text-gray-400">{item.category}</td>
+                  <td className="px-6 py-4 text-gray-400">{item.category?.name}</td>
                   <td className="px-6 py-4 font-medium">${item.price.toFixed(2)}</td>
                   <td className="px-6 py-4">
                     <button 
-                      onClick={() => toggleAvailability(item.id)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${item.available ? 'bg-green-500' : 'bg-gray-600'}`}
+                      onClick={() => toggleAvailability(item.id, item.isAvailable)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${item.isAvailable ? 'bg-green-500' : 'bg-gray-600'}`}
                     >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${item.available ? 'translate-x-6' : 'translate-x-1'}`} />
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${item.isAvailable ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </td>
                   <td className="px-6 py-4 text-right">
