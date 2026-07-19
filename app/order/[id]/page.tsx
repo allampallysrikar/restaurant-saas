@@ -8,16 +8,24 @@ function getDb() {
   return neon(url);
 }
 
-// Ensure dynamic rendering
 export const dynamic = "force-dynamic";
+
+interface OrderRow {
+  id: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+  quantity: number;
+  priceAtTime: number;
+  item_name: string;
+}
 
 export default async function OrderTrackingPage({ params }: { params: { id: string } }) {
   const sql = getDb();
 
-  // Try to fetch order and items
-  let orders: Record<string, unknown>[] = [];
+  let orders: OrderRow[] = [];
   try {
-    orders = await sql`
+    const rows = await sql`
       SELECT 
         o.id, o.status, o."totalAmount", o."createdAt", 
         oi.quantity, oi."priceAtTime", 
@@ -27,9 +35,9 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
       LEFT JOIN "MenuItem" m ON m.id = oi."menuItemId" 
       WHERE o.id = ${params.id}
     `;
+    orders = rows as OrderRow[];
   } catch (error) {
     console.error("Failed to fetch order:", error);
-    orders = [];
   }
 
   if (!orders || orders.length === 0) {
@@ -37,7 +45,7 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="text-center bg-white/5 border border-white/10 p-10 rounded-3xl max-w-md w-full">
           <h2 className="text-2xl font-bold mb-4">Order Not Found</h2>
-          <p className="text-gray-400 mb-8">We couldn't find an order with this ID. It may be invalid or expired.</p>
+          <p className="text-gray-400 mb-8">We couldn&apos;t find an order with this ID. It may be invalid or expired.</p>
           <Link href="/menu" className="px-6 py-3 bg-white text-black rounded-xl font-medium inline-block hover:bg-gray-200 transition">
             Back to Menu
           </Link>
@@ -59,50 +67,33 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
   return (
     <div className="container mx-auto px-6 py-24 min-h-screen max-w-4xl">
       <div className="mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2">Track Your <span className="bg-gradient-to-r from-gray-200 to-gray-500 bg-clip-text text-transparent">Order</span></h1>
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2">
+          Track Your <span className="bg-gradient-to-r from-gray-200 to-gray-500 bg-clip-text text-transparent">Order</span>
+        </h1>
         <p className="text-gray-400">Order ID: <span className="font-mono text-sm">{orderInfo.id}</span></p>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 mb-8">
         <h2 className="text-xl font-bold mb-8">Order Status</h2>
-        
+
         {/* Progress Bar */}
         <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-8 md:gap-0">
           <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-white/10 -translate-y-1/2 z-0"></div>
-          
           <div className="hidden md:block absolute top-1/2 left-0 h-1 bg-white transition-all duration-500 z-0" style={{ width: `${(Math.max(0, currentStatusIndex) / 3) * 100}%` }}></div>
 
-          {/* Pending */}
-          <div className="relative z-10 flex flex-row md:flex-col items-center gap-4 md:gap-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${currentStatusIndex >= 0 ? "bg-white text-black border-white" : "bg-black text-gray-500 border-white/20"}`}>
-              <Clock className="w-5 h-5" />
+          {[
+            { label: "Pending", icon: <Clock className="w-5 h-5" /> },
+            { label: "Preparing", icon: <Package className="w-5 h-5" /> },
+            { label: "Out for Delivery", icon: <MapPin className="w-5 h-5" /> },
+            { label: "Delivered", icon: <CheckCircle className="w-5 h-5" /> },
+          ].map((step, i) => (
+            <div key={i} className="relative z-10 flex flex-row md:flex-col items-center gap-4 md:gap-3">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${currentStatusIndex >= i ? "bg-white text-black border-white" : "bg-black text-gray-500 border-white/20"}`}>
+                {step.icon}
+              </div>
+              <span className={`font-medium ${currentStatusIndex >= i ? "text-white" : "text-gray-500"}`}>{step.label}</span>
             </div>
-            <span className={`font-medium ${currentStatusIndex >= 0 ? "text-white" : "text-gray-500"}`}>Pending</span>
-          </div>
-
-          {/* Preparing */}
-          <div className="relative z-10 flex flex-row md:flex-col items-center gap-4 md:gap-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${currentStatusIndex >= 1 ? "bg-white text-black border-white" : "bg-black text-gray-500 border-white/20"}`}>
-              <Package className="w-5 h-5" />
-            </div>
-            <span className={`font-medium ${currentStatusIndex >= 1 ? "text-white" : "text-gray-500"}`}>Preparing</span>
-          </div>
-
-          {/* Out for Delivery */}
-          <div className="relative z-10 flex flex-row md:flex-col items-center gap-4 md:gap-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${currentStatusIndex >= 2 ? "bg-white text-black border-white" : "bg-black text-gray-500 border-white/20"}`}>
-              <MapPin className="w-5 h-5" />
-            </div>
-            <span className={`font-medium ${currentStatusIndex >= 2 ? "text-white" : "text-gray-500"}`}>Out for Delivery</span>
-          </div>
-
-          {/* Delivered */}
-          <div className="relative z-10 flex flex-row md:flex-col items-center gap-4 md:gap-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${currentStatusIndex >= 3 ? "bg-white text-black border-white" : "bg-black text-gray-500 border-white/20"}`}>
-              <CheckCircle className="w-5 h-5" />
-            </div>
-            <span className={`font-medium ${currentStatusIndex >= 3 ? "text-white" : "text-gray-500"}`}>Delivered</span>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -123,6 +114,10 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
           <span className="text-xl font-bold">Total Paid</span>
           <span className="text-2xl font-bold">${Number(orderInfo.totalAmount).toFixed(2)}</span>
         </div>
+      </div>
+
+      <div className="mt-8 text-center">
+        <Link href="/menu" className="text-gray-400 hover:text-white transition text-sm">← Continue Shopping</Link>
       </div>
     </div>
   );
