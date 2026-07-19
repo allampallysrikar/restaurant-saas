@@ -1,5 +1,5 @@
 import React from "react";
-import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users, LogOut, Monitor, Tablet, QrCode, Printer, BarChart3, Building2, Boxes, Briefcase, Bot } from "lucide-react";
+import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users, LogOut, Monitor, Tablet, QrCode, Printer, BarChart3, Building2, Boxes, Briefcase, Bot, Globe, Award, FileText } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { neon } from "@neondatabase/serverless";
@@ -71,6 +71,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="pt-2 pb-1 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">
             BI & Enterprise
           </div>
+          <a href="/admin/hq" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Globe className="w-4 h-4 mr-3 text-[#C9A84C]" /> Corporate HQ Command
+          </a>
+          <a href="/admin/crm" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Award className="w-4 h-4 mr-3 text-[#C9A84C]" /> VIP Guest CRM Vault
+          </a>
+          <a href="/admin/z-report" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <FileText className="w-4 h-4 mr-3 text-[#C9A84C]" /> Daily Z-Report Ledger
+          </a>
           <a href="/admin/analytics" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
             <BarChart3 className="w-4 h-4 mr-3 text-[#C9A84C]" /> Menu Engineering BI
           </a>
@@ -104,6 +113,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <header className="h-16 bg-[#111111] border-b border-[#2A1A1F] flex items-center justify-between px-4 md:hidden overflow-x-auto">
           <span className="font-bold text-lg text-[#C9A84C] whitespace-nowrap mr-4">Golden Fork</span>
           <div className="flex gap-3 text-xs text-[#F5F0E8]/80 whitespace-nowrap">
+            <a href="/admin/hq" className="hover:text-[#C9A84C]">HQ Command</a>
+            <a href="/admin/crm" className="hover:text-[#C9A84C]">VIP CRM</a>
+            <a href="/admin/z-report" className="hover:text-[#C9A84C]">Z-Report</a>
             <a href="/admin/orders" className="hover:text-[#C9A84C]">Orders</a>
             <a href="/admin/pos" className="hover:text-[#C9A84C]">POS</a>
             <a href="/admin/kds" className="hover:text-[#C9A84C]">KDS</a>
