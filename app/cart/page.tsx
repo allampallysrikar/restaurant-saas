@@ -84,7 +84,11 @@ export default function CartPage() {
             <ShieldCheck className="w-10 h-10" />
           </div>
           <h2 className="text-3xl font-bold mb-4">Order Confirmed!</h2>
-          <p className="text-gray-400 mb-8">Your payment was successful. The kitchen has started preparing your culinary experience.</p>
+          <p className="text-gray-400 mb-2">Your payment was successful. The kitchen has started preparing your culinary experience.</p>
+          <div className="bg-white/10 rounded-xl p-4 mb-8 border border-white/5 inline-block">
+            <p className="text-white font-medium">✨ You earned {Math.floor(finalTotal)} points! ✨</p>
+            <p className="text-xs text-gray-400 mt-1">(1 point per $1 spent)</p>
+          </div>
           <div className="space-y-4">
             <a href={`/order/${orderId}`} className="block w-full py-3 bg-white text-black font-medium rounded-xl hover:bg-gray-200 transition-colors">
               Track Your Order

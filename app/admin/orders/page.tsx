@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Check, X, Clock, Printer } from "lucide-react";
+import { Check, X, Clock, Printer, Download } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminOrdersPage() {
@@ -17,13 +17,42 @@ export default function AdminOrdersPage() {
     await m.updateOrderStatus(id, status);
   };
 
+  const exportToCSV = () => {
+    if (orders.length === 0) return;
+    const headers = ["Order ID", "Date", "Status", "Total Amount", "Items"];
+    const rows = orders.map(order => [
+      order.id,
+      new Date(order.createdAt).toLocaleString(),
+      order.status,
+      order.totalAmount.toFixed(2),
+      order.items.map((i: any) => `${i.quantity}x ${i.menuItem.name}`).join(" | ")
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Order Management</h1>
           <p className="text-gray-400">Live kitchen queue and order processing.</p>
         </div>
+        <button onClick={exportToCSV} className="flex items-center px-4 py-2 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition">
+          <Download className="w-4 h-4 mr-2" /> Export CSV
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

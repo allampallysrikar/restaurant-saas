@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Users, CheckCircle, AlertCircle } from "lucide-react";
-import { createReservation } from "@/app/actions/reservations";
+import { createReservation, getBookedSlots } from "@/app/actions/reservations";
 
 export default function ReservationsPage() {
   const [formData, setFormData] = useState({
@@ -19,6 +19,15 @@ export default function ReservationsPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (formData.date) {
+      getBookedSlots(formData.date).then(slots => setBookedSlots(slots));
+    } else {
+      setBookedSlots([]);
+    }
+  }, [formData.date]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,15 +153,15 @@ export default function ReservationsPage() {
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                   className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/40 text-white transition [color-scheme:dark]"
                 >
-                  <option value="17:00">5:00 PM</option>
-                  <option value="17:30">5:30 PM</option>
-                  <option value="18:00">6:00 PM</option>
-                  <option value="18:30">6:30 PM</option>
-                  <option value="19:00">7:00 PM</option>
-                  <option value="19:30">7:30 PM</option>
-                  <option value="20:00">8:00 PM</option>
-                  <option value="20:30">8:30 PM</option>
-                  <option value="21:00">9:00 PM</option>
+                  <option value="17:00" disabled={bookedSlots.includes("17:00")}>5:00 PM {bookedSlots.includes("17:00") && "(Booked)"}</option>
+                  <option value="17:30" disabled={bookedSlots.includes("17:30")}>5:30 PM {bookedSlots.includes("17:30") && "(Booked)"}</option>
+                  <option value="18:00" disabled={bookedSlots.includes("18:00")}>6:00 PM {bookedSlots.includes("18:00") && "(Booked)"}</option>
+                  <option value="18:30" disabled={bookedSlots.includes("18:30")}>6:30 PM {bookedSlots.includes("18:30") && "(Booked)"}</option>
+                  <option value="19:00" disabled={bookedSlots.includes("19:00")}>7:00 PM {bookedSlots.includes("19:00") && "(Booked)"}</option>
+                  <option value="19:30" disabled={bookedSlots.includes("19:30")}>7:30 PM {bookedSlots.includes("19:30") && "(Booked)"}</option>
+                  <option value="20:00" disabled={bookedSlots.includes("20:00")}>8:00 PM {bookedSlots.includes("20:00") && "(Booked)"}</option>
+                  <option value="20:30" disabled={bookedSlots.includes("20:30")}>8:30 PM {bookedSlots.includes("20:30") && "(Booked)"}</option>
+                  <option value="21:00" disabled={bookedSlots.includes("21:00")}>9:00 PM {bookedSlots.includes("21:00") && "(Booked)"}</option>
                 </select>
               </div>
 

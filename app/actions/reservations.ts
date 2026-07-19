@@ -71,3 +71,14 @@ export async function updateReservationStatus(id: string, status: string) {
     return { success: false, error: "Database update failed" };
   }
 }
+
+export async function getBookedSlots(date: string) {
+  try {
+    const sql = getDb();
+    const result = await sql`SELECT time FROM "Reservation" WHERE date::date = ${date}::date AND status = 'CONFIRMED'`;
+    return result.map(row => row.time);
+  } catch (error) {
+    console.error("Failed to fetch booked slots:", error);
+    return [];
+  }
+}

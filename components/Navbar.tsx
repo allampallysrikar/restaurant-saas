@@ -33,6 +33,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-300">
             <a href="/menu" className="hover:text-white transition-colors">Menu</a>
             <a href="/reservations" className="hover:text-white transition-colors">Reservations</a>
+            <a href="/profile" className="hover:text-white transition-colors">Points</a>
             <CartBadge />
           </div>
 
@@ -57,6 +58,7 @@ export function Navbar() {
           >
             <a href="/menu" onClick={() => setIsOpen(false)} className="text-gray-300 hover:text-white transition-colors">Menu</a>
             <a href="/reservations" onClick={() => setIsOpen(false)} className="text-gray-300 hover:text-white transition-colors">Reservations</a>
+            <a href="/profile" onClick={() => setIsOpen(false)} className="text-gray-300 hover:text-white transition-colors">Points</a>
             <a href="/admin" onClick={() => setIsOpen(false)} className="text-gray-300 hover:text-white transition-colors">Admin</a>
           </motion.div>
         )}
