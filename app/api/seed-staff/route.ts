@@ -34,6 +34,11 @@ export async function GET() {
     }
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ success: false, error: "Seed failed" }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: "Seed failed", 
+      details: err instanceof Error ? err.message : String(err),
+      hint: "Make sure DATABASE_URL and BETTER_AUTH_SECRET are added inside your Vercel Project Settings > Environment Variables!"
+    }, { status: 500 });
   }
 }

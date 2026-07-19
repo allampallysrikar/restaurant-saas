@@ -49,6 +49,11 @@ export async function GET() {
     return NextResponse.json({ success: true, message: "Database seeded successfully with 20 premium items across 4 categories!" });
   } catch (err) {
     console.error("Seed error:", err);
-    return NextResponse.json({ success: false, error: "Seed failed" }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: "Seed failed", 
+      details: err instanceof Error ? err.message : String(err),
+      hint: "Make sure DATABASE_URL is added inside your Vercel Project Settings > Environment Variables!"
+    }, { status: 500 });
   }
 }
