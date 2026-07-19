@@ -56,7 +56,7 @@ export async function GET() {
     ];
 
     for (const item of items) {
-      await sql`INSERT INTO "MenuItem" (id, name, description, price, "categoryId", image, available, "createdAt", "updatedAt")
+      await sql`INSERT INTO "MenuItem" (id, name, description, price, "categoryId", image, "isAvailable", "createdAt", "updatedAt")
         VALUES (gen_random_uuid(), ${item.name}, ${item.desc}, ${item.price}, ${item.catId}, ${item.img}, true, NOW(), NOW())`;
     }
 
