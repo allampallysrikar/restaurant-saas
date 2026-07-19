@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
+import OfflineSyncIndicator from "@/components/OfflineSyncIndicator";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -26,6 +27,7 @@ export default function RootLayout({
     <html lang="en" className="dark scroll-smooth">
       <body className={`${inter.variable} ${playfair.variable} ${inter.className} min-h-screen bg-[#0A0A0A] text-[#F5F0E8] antialiased`}>
         <Navbar />
+        <OfflineSyncIndicator />
         <main className="pt-20">
           {children}
         </main>

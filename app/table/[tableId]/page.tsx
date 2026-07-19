@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Utensils, ArrowRight, Bell, Droplets, Receipt } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import TableServiceBar from "@/components/TableServiceBar";
+import AiConciergeModal from "@/components/AiConciergeModal";
 
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -82,6 +83,7 @@ export default function TablePortalPage({ params }: { params: Promise<{ tableId:
 
       {/* Floating Hospitality Bar at Bottom */}
       <TableServiceBar tableId={formattedTableName} />
+      <AiConciergeModal />
     </div>
   );
 }

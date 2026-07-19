@@ -7,6 +7,7 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { getReviewsForMenuItem, createReview } from "@/app/actions/reviews";
 import Link from "next/link";
 import TableServiceBar from "@/components/TableServiceBar";
+import AiConciergeModal from "@/components/AiConciergeModal";
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -385,6 +386,9 @@ export default function MenuPage() {
           <TableServiceBar tableId={tableNum} />
         </div>
       )}
+
+      {/* AI Sommelier Concierge Floating Modal */}
+      <AiConciergeModal />
     </div>
   );
 }

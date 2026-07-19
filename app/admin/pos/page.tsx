@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { getLiveMenu } from "@/app/actions/menu";
 import { createOrder } from "@/app/actions/orders";
 import { getLiveServiceCalls, acknowledgeServiceCall, resolveServiceCall, TableServiceCall } from "@/app/actions/table-service";
+import { saveOfflineOrder } from "@/lib/offline-sync";
 import { Plus, Minus, Trash2, Search, CheckCircle, Receipt, Scissors, ShieldAlert, Lock, Unlock, Users, Tag, AlertCircle, ArrowRightLeft, Bell, Droplets, Check } from "lucide-react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 
@@ -222,16 +223,45 @@ export default function POSPage() {
     const itemsPayload = cart.map(item => ({
       id: item.id,
       quantity: item.quantity,
-      price: item.price
+      price: item.price,
+      name: item.name
     }));
 
-    const result = await createOrder(itemsPayload, parseFloat(total.toFixed(2)), deliveryAdd);
-    
-    setIsSubmitting(false);
-    if (result.success) {
-      setSuccessModal(result.orderId as string);
-    } else {
-      alert("Failed to submit order to database");
+    // Check if offline
+    if (typeof window !== "undefined" && !navigator.onLine) {
+      const saved = saveOfflineOrder({
+        items: itemsPayload,
+        total: parseFloat(total.toFixed(2)),
+        deliveryAdd
+      });
+      setIsSubmitting(false);
+      setSuccessModal(saved.localId);
+      return;
+    }
+
+    try {
+      const result = await createOrder(itemsPayload, parseFloat(total.toFixed(2)), deliveryAdd);
+      setIsSubmitting(false);
+      if (result.success) {
+        setSuccessModal(result.orderId as string);
+      } else {
+        // Fallback save to offline queue if server returned error
+        const saved = saveOfflineOrder({
+          items: itemsPayload,
+          total: parseFloat(total.toFixed(2)),
+          deliveryAdd
+        });
+        setSuccessModal(saved.localId);
+      }
+    } catch (err) {
+      // Network drop during action execution
+      const saved = saveOfflineOrder({
+        items: itemsPayload,
+        total: parseFloat(total.toFixed(2)),
+        deliveryAdd
+      });
+      setIsSubmitting(false);
+      setSuccessModal(saved.localId);
     }
   };
 
@@ -813,11 +843,26 @@ export default function POSPage() {
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
               className="bg-[#111111] border border-[#2A1A1F] rounded-3xl p-8 max-w-sm w-full text-center flex flex-col items-center shadow-2xl"
             >
-              <CheckCircle className="w-20 h-20 text-[#10B981] mb-6 animate-bounce" />
-              <h2 className="text-2xl font-bold text-[#F5F0E8] mb-2">Order Fired!</h2>
+              {successModal.startsWith("offline-") ? (
+                <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500 mb-4">
+                  <AlertCircle className="w-16 h-16 text-amber-400 animate-pulse" />
+                </div>
+              ) : (
+                <CheckCircle className="w-20 h-20 text-[#10B981] mb-6 animate-bounce" />
+              )}
+              <h2 className="text-2xl font-bold text-[#F5F0E8] mb-2">
+                {successModal.startsWith("offline-") ? "Saved Offline!" : "Order Fired!"}
+              </h2>
               <p className="text-[#F5F0E8]/70 text-sm mb-6 leading-relaxed">
-                Ticket sent instantly to kitchen KDS with course pacing and seat tags. <br/>
-                Order ID: <span className="font-mono font-bold text-[#C9A84C]">{successModal.slice(0, 8)}</span>
+                {successModal.startsWith("offline-") ? (
+                  <>
+                    <span className="text-amber-400 font-bold">⚠️ Offline Mode Active.</span> Ticket stored safely in local browser `IndexedDB`. It will auto-upload to Neon Postgres once connection restores.
+                  </>
+                ) : (
+                  <>Ticket sent instantly to kitchen KDS with course pacing and seat tags.</>
+                )}
+                <br/>
+                ID: <span className="font-mono font-bold text-[#C9A84C]">{successModal.slice(0, 12)}</span>
               </p>
               <button
                 onClick={resetOrder}

@@ -1,5 +1,5 @@
 import React from "react";
-import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users, LogOut, Monitor, Tablet, QrCode, Printer, BarChart3, Building2 } from "lucide-react";
+import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users, LogOut, Monitor, Tablet, QrCode, Printer, BarChart3, Building2, Boxes, Briefcase, Bot } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { neon } from "@neondatabase/serverless";
@@ -69,10 +69,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </a>
           
           <div className="pt-2 pb-1 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">
-            BI & Hardware
+            BI & Enterprise
           </div>
           <a href="/admin/analytics" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
             <BarChart3 className="w-4 h-4 mr-3 text-[#C9A84C]" /> Menu Engineering BI
+          </a>
+          <a href="/admin/inventory" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Boxes className="w-4 h-4 mr-3 text-[#C9A84C]" /> Recipe BOM & Procurement
+          </a>
+          <a href="/admin/staff" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Briefcase className="w-4 h-4 mr-3 text-[#C9A84C]" /> Staff HR & Tip Pooling
+          </a>
+          <a href="/admin/ai-concierge" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Bot className="w-4 h-4 mr-3 text-[#C9A84C]" /> AI Sommelier Rules
           </a>
           <a href="/admin/hardware" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
             <Printer className="w-4 h-4 mr-3 text-[#C9A84C]" /> ESC/POS Hardware
@@ -98,7 +107,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <a href="/admin/orders" className="hover:text-[#C9A84C]">Orders</a>
             <a href="/admin/pos" className="hover:text-[#C9A84C]">POS</a>
             <a href="/admin/kds" className="hover:text-[#C9A84C]">KDS</a>
-            <a href="/admin/analytics" className="hover:text-[#C9A84C]">BI Matrix</a>
+            <a href="/admin/analytics" className="hover:text-[#C9A84C]">BI</a>
+            <a href="/admin/inventory" className="hover:text-[#C9A84C]">Inventory</a>
+            <a href="/admin/staff" className="hover:text-[#C9A84C]">Staff</a>
+            <a href="/admin/ai-concierge" className="hover:text-[#C9A84C]">AI</a>
             <a href="/admin/hardware" className="hover:text-[#C9A84C]">Hardware</a>
           </div>
         </header>
