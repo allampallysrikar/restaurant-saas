@@ -1,7 +1,13 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { neon } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
+
+function getDb() {
+  const url = process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED || "";
+  if (!url) throw new Error("DATABASE_URL not set");
+  return neon(url);
+}
 
 export async function createReservation(data: {
   guestName: string;
@@ -13,21 +19,26 @@ export async function createReservation(data: {
   specialReq?: string;
 }) {
   try {
-    const reservation = await prisma.reservation.create({
-      data: {
-        guestName: data.guestName,
-        guestEmail: data.guestEmail,
-        guestPhone: data.guestPhone,
-        date: new Date(data.date),
-        time: data.time,
-        guestsCount: Number(data.guestsCount),
-        specialReq: data.specialReq || "",
-        status: "PENDING",
-      },
-    });
-
+    const sql = getDb();
+    const [reservation] = await sql`
+      INSERT INTO "Reservation" (id, "guestName", "guestEmail", "guestPhone", date, time, "guestsCount", status, "specialReq", "createdAt", "updatedAt")
+      VALUES (
+        gen_random_uuid(),
+        ${data.guestName},
+        ${data.guestEmail},
+        ${data.guestPhone || ""},
+        ${new Date(data.date).toISOString()},
+        ${data.time},
+        ${Number(data.guestsCount)},
+        'PENDING',
+        ${data.specialReq || ""},
+        NOW(),
+        NOW()
+      )
+      RETURNING id
+    `;
     revalidatePath("/admin/reservations");
-    return { success: true, reservation };
+    return { success: true, reservation: { id: reservation.id } };
   } catch (error) {
     console.error("Failed to create reservation:", error);
     return { success: false, error: "Database error creating reservation" };
@@ -36,9 +47,12 @@ export async function createReservation(data: {
 
 export async function getLiveReservations() {
   try {
-    const reservations = await prisma.reservation.findMany({
-      orderBy: { date: "asc" },
-    });
+    const sql = getDb();
+    const reservations = await sql`
+      SELECT id, "guestName", "guestEmail", "guestPhone", date, time, "guestsCount", status, "specialReq", "createdAt"
+      FROM "Reservation"
+      ORDER BY "createdAt" DESC
+    `;
     return reservations;
   } catch (error) {
     console.error("Failed to fetch reservations:", error);
@@ -48,12 +62,10 @@ export async function getLiveReservations() {
 
 export async function updateReservationStatus(id: string, status: string) {
   try {
-    const updated = await prisma.reservation.update({
-      where: { id },
-      data: { status },
-    });
+    const sql = getDb();
+    await sql`UPDATE "Reservation" SET status = ${status}, "updatedAt" = NOW() WHERE id = ${id}`;
     revalidatePath("/admin/reservations");
-    return { success: true, updated };
+    return { success: true };
   } catch (error) {
     console.error("Failed to update reservation status:", error);
     return { success: false, error: "Database update failed" };

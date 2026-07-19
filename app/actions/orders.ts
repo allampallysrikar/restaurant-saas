@@ -1,24 +1,28 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { neon } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
+
+function getDb() {
+  const url = process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED || "";
+  if (!url) throw new Error("DATABASE_URL not set");
+  return neon(url);
+}
 
 export async function createOrder(items: { id: string, quantity: number, price: number }[], total: number) {
   try {
-    const order = await prisma.order.create({
-      data: {
-        totalAmount: total,
-        status: "PENDING",
-        items: {
-          create: items.map(item => ({
-            menuItem: { connect: { id: item.id } },
-            quantity: item.quantity,
-            priceAtTime: item.price
-          }))
-        }
-      }
-    });
-    
+    const sql = getDb();
+    const [order] = await sql`
+      INSERT INTO "Order" (id, "totalAmount", status, "createdAt", "updatedAt")
+      VALUES (gen_random_uuid(), ${total}, 'PENDING', NOW(), NOW())
+      RETURNING id
+    `;
+    for (const item of items) {
+      await sql`
+        INSERT INTO "OrderItem" (id, "orderId", "menuItemId", quantity, "priceAtTime")
+        VALUES (gen_random_uuid(), ${order.id}, ${item.id}, ${item.quantity}, ${item.price})
+      `;
+    }
     revalidatePath("/admin/orders");
     return { success: true, orderId: order.id };
   } catch (error) {
@@ -28,21 +32,49 @@ export async function createOrder(items: { id: string, quantity: number, price: 
 }
 
 export async function getLiveOrders() {
-  const orders = await prisma.order.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      items: {
-        include: { menuItem: true }
+  try {
+    const sql = getDb();
+    const orders = await sql`
+      SELECT 
+        o.id, o.status, o."totalAmount", o."createdAt",
+        oi.id as "item_id", oi.quantity, oi."priceAtTime",
+        m.name as "item_name"
+      FROM "Order" o
+      LEFT JOIN "OrderItem" oi ON oi."orderId" = o.id
+      LEFT JOIN "MenuItem" m ON m.id = oi."menuItemId"
+      ORDER BY o."createdAt" DESC
+    `;
+
+    // Group by order
+    const orderMap: Record<string, any> = {};
+    for (const row of orders) {
+      if (!orderMap[row.id]) {
+        orderMap[row.id] = {
+          id: row.id,
+          status: row.status,
+          totalAmount: row.totalAmount,
+          createdAt: row.createdAt,
+          items: [],
+        };
+      }
+      if (row.item_id) {
+        orderMap[row.id].items.push({
+          id: row.item_id,
+          quantity: row.quantity,
+          priceAtTime: row.priceAtTime,
+          menuItem: { name: row.item_name },
+        });
       }
     }
-  });
-  return orders;
+    return Object.values(orderMap);
+  } catch (err) {
+    console.error("getLiveOrders error:", err);
+    return [];
+  }
 }
 
 export async function updateOrderStatus(orderId: string, status: string) {
-  await prisma.order.update({
-    where: { id: orderId },
-    data: { status }
-  });
+  const sql = getDb();
+  await sql`UPDATE "Order" SET status = ${status}, "updatedAt" = NOW() WHERE id = ${orderId}`;
   revalidatePath("/admin/orders");
 }
