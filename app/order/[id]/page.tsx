@@ -15,7 +15,7 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
   const sql = getDb();
 
   // Try to fetch order and items
-  let orders;
+  let orders: Record<string, unknown>[] = [];
   try {
     orders = await sql`
       SELECT 
