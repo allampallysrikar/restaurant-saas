@@ -29,14 +29,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <a href="/admin/orders" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition">
             <ShoppingBag className="w-5 h-5 mr-3" /> Orders
           </a>
+          <a href="/admin/reservations" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition">
+            <Users className="w-5 h-5 mr-3" /> Reservations
+          </a>
           <a href="/admin/menu" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition">
             <UtensilsCrossed className="w-5 h-5 mr-3" /> Menu Items
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition">
-            <Users className="w-5 h-5 mr-3" /> Customers
-          </a>
-          <a href="#" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition">
-            <Settings className="w-5 h-5 mr-3" /> Settings
           </a>
         </nav>
         

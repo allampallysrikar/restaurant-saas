@@ -23,13 +23,13 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button className="px-8 py-4 bg-white text-black rounded-full font-medium hover:bg-gray-200 transition flex items-center group">
+          <a href="/menu" className="px-8 py-4 bg-white text-black rounded-full font-medium hover:bg-gray-200 transition flex items-center group">
             Order Online
             <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-          <button className="px-8 py-4 bg-transparent border border-white/20 text-white rounded-full font-medium hover:bg-white/5 transition">
+          </a>
+          <a href="/reservations" className="px-8 py-4 bg-transparent border border-white/20 text-white rounded-full font-medium hover:bg-white/5 transition">
             Book a Table
-          </button>
+          </a>
         </div>
       </div>
     </div>

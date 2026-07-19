@@ -17,10 +17,10 @@ export default function MenuPage() {
     import("@/app/actions/menu").then(m => m.getLiveMenu().then(data => setMenuItems(data)));
   }, []);
 
-  const MOCK_CATEGORIES = ["All", ...Array.from(new Set(menuItems.map(i => i.category.name)))];
+  const MOCK_CATEGORIES = ["All", ...Array.from(new Set(menuItems.map(i => i.category?.name || "General")))];
 
   const filteredMenu = menuItems.filter((item) => {
-    const matchesCategory = activeCategory === "All" || item.category?.name === activeCategory;
+    const matchesCategory = activeCategory === "All" || (item.category?.name || "General") === activeCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -41,11 +41,14 @@ export default function MenuPage() {
               placeholder="Search dishes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-full focus:outline-none focus:border-white/30 text-sm transition-colors"
+              className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-full focus:outline-none focus:border-white/30 text-sm transition-colors text-white"
             />
           </div>
-          <button className="flex items-center justify-center px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors text-sm">
-            <Filter className="w-4 h-4 mr-2" /> Filters
+          <button 
+            onClick={() => { setActiveCategory("All"); setSearchQuery(""); }}
+            className="flex items-center justify-center px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors text-sm text-gray-300"
+          >
+            <Filter className="w-4 h-4 mr-2" /> Reset Filters
           </button>
         </div>
       </div>
@@ -73,21 +76,29 @@ export default function MenuPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             key={item.id} 
-            className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+            className="group relative rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between"
           >
-            <div className="h-48 overflow-hidden relative">
-              <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute top-4 right-4 px-3 py-1 bg-black/70 backdrop-blur-md rounded-full text-xs font-medium border border-white/10">
-                ${item.price}
+            <div>
+              <div className="h-48 overflow-hidden relative">
+                <img src={item.image || "https://images.unsplash.com/photo-1544025162-83b3e21e4281?w=600&auto=format&fit=crop&q=80"} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute top-4 right-4 px-3 py-1 bg-black/70 backdrop-blur-md rounded-full text-xs font-medium border border-white/10 text-white">
+                  ${Number(item.price).toFixed(2)}
+                </div>
+              </div>
+              <div className="p-6 pb-2">
+                <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">{item.category?.name || "General"}</div>
+                <h3 className="text-xl font-bold mb-2 text-gray-100">{item.name}</h3>
+                <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
               </div>
             </div>
-            <div className="p-6">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">{item.category}</div>
-              <h3 className="text-xl font-bold mb-2 text-gray-100">{item.name}</h3>
-              <p className="text-sm text-gray-400 line-clamp-2 mb-6">{item.description}</p>
-              
+            <div className="p-6 pt-4">
               <button 
-                onClick={() => addItem(item)}
+                onClick={() => addItem({
+                  id: item.id,
+                  name: item.name,
+                  price: Number(item.price),
+                  image: item.image
+                })}
                 className="w-full py-3 bg-white/5 border border-white/10 hover:bg-white text-gray-300 hover:text-black rounded-xl font-medium transition-colors flex items-center justify-center"
               >
                 <Plus className="w-4 h-4 mr-2" /> Add to Cart
