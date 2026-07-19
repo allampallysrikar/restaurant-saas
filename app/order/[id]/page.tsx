@@ -42,12 +42,15 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
 
   if (!orders || orders.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center bg-white/5 border border-white/10 p-10 rounded-3xl max-w-md w-full">
-          <h2 className="text-2xl font-bold mb-4">Order Not Found</h2>
-          <p className="text-gray-400 mb-8">We couldn&apos;t find an order with this ID. It may be invalid or expired.</p>
-          <Link href="/menu" className="px-6 py-3 bg-white text-black rounded-xl font-medium inline-block hover:bg-gray-200 transition">
-            Back to Menu
+      <div className="min-h-screen bg-[#0A0A0A] text-[#F5F0E8] flex items-center justify-center p-6">
+        <div className="text-center bg-[#111111] border border-[#2A1A1F] p-12 rounded-3xl max-w-md w-full shadow-2xl">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[#2A1A1F] flex items-center justify-center mb-6">
+            <Package className="w-8 h-8 text-[#C9A84C]" />
+          </div>
+          <h2 className="font-[family-name:var(--font-playfair)] text-3xl font-bold mb-4 text-[#F5F0E8]">Order Not Found</h2>
+          <p className="text-gray-400 mb-8">We couldn't locate this order. It may be invalid or expired.</p>
+          <Link href="/menu" className="px-8 py-4 bg-[#7C1D35] text-[#F5F0E8] rounded-xl font-bold inline-block hover:bg-[#C9A84C] hover:text-[#0A0A0A] transition-colors shadow-lg w-full">
+            Return to Menu
           </Link>
         </div>
       </div>
@@ -65,59 +68,76 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
   const currentStatusIndex = statuses.indexOf(orderInfo.status);
 
   return (
-    <div className="container mx-auto px-6 py-24 min-h-screen max-w-4xl">
-      <div className="mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2">
-          Track Your <span className="bg-gradient-to-r from-gray-200 to-gray-500 bg-clip-text text-transparent">Order</span>
-        </h1>
-        <p className="text-gray-400">Order ID: <span className="font-mono text-sm">{orderInfo.id}</span></p>
-      </div>
+    <div className="bg-[#0A0A0A] text-[#F5F0E8] min-h-screen pb-24 pt-32">
+      <div className="container mx-auto px-6 max-w-4xl">
+        <div className="mb-12 text-center md:text-left">
+          <h1 className="font-[family-name:var(--font-playfair)] text-4xl md:text-6xl font-bold tracking-tight mb-4">
+            Track Your <span className="text-[#C9A84C]">Order</span>
+          </h1>
+          <p className="text-gray-400 uppercase tracking-widest text-sm font-bold">
+            Order ID: <span className="text-[#F5F0E8] ml-2">{orderInfo.id.split('-')[0]}...</span>
+          </p>
+        </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 mb-8">
-        <h2 className="text-xl font-bold mb-8">Order Status</h2>
+        <div className="bg-[#111111] border border-[#2A1A1F] rounded-3xl p-8 md:p-12 mb-8 shadow-xl">
+          <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold mb-12 text-center md:text-left border-b border-[#2A1A1F] pb-4 text-[#F5F0E8]">Status</h2>
 
-        {/* Progress Bar */}
-        <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-8 md:gap-0">
-          <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-white/10 -translate-y-1/2 z-0"></div>
-          <div className="hidden md:block absolute top-1/2 left-0 h-1 bg-white transition-all duration-500 z-0" style={{ width: `${(Math.max(0, currentStatusIndex) / 3) * 100}%` }}></div>
+          {/* Progress Bar */}
+          <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-8 md:gap-0 px-4 md:px-0">
+            <div className="hidden md:block absolute top-6 left-0 w-full h-1 bg-[#2A1A1F] z-0 rounded-full"></div>
+            <div className="hidden md:block absolute top-6 left-0 h-1 bg-[#7C1D35] transition-all duration-1000 z-0 rounded-full shadow-[0_0_10px_#7C1D35]" style={{ width: `${(Math.max(0, currentStatusIndex) / 3) * 100}%` }}></div>
 
-          {[
-            { label: "Pending", icon: <Clock className="w-5 h-5" /> },
-            { label: "Preparing", icon: <Package className="w-5 h-5" /> },
-            { label: "Out for Delivery", icon: <MapPin className="w-5 h-5" /> },
-            { label: "Delivered", icon: <CheckCircle className="w-5 h-5" /> },
-          ].map((step, i) => (
-            <div key={i} className="relative z-10 flex flex-row md:flex-col items-center gap-4 md:gap-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${currentStatusIndex >= i ? "bg-white text-black border-white" : "bg-black text-gray-500 border-white/20"}`}>
-                {step.icon}
+            {/* Mobile Vertical Line */}
+            <div className="md:hidden absolute left-10 top-0 bottom-0 w-1 bg-[#2A1A1F] z-0"></div>
+            <div className="md:hidden absolute left-10 top-0 w-1 bg-[#7C1D35] transition-all duration-1000 z-0 shadow-[0_0_10px_#7C1D35]" style={{ height: `${(Math.max(0, currentStatusIndex) / 3) * 100}%` }}></div>
+
+            {[
+              { label: "Pending", icon: <Clock className="w-5 h-5" /> },
+              { label: "Preparing", icon: <Package className="w-5 h-5" /> },
+              { label: "On the Way", icon: <MapPin className="w-5 h-5" /> },
+              { label: "Delivered", icon: <CheckCircle className="w-5 h-5" /> },
+            ].map((step, i) => (
+              <div key={i} className="relative z-10 flex flex-row md:flex-col items-center gap-6 md:gap-4 w-full md:w-auto">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 shadow-lg
+                  ${currentStatusIndex >= i 
+                    ? "bg-[#7C1D35] text-[#F5F0E8] border-[#7C1D35]" 
+                    : "bg-[#0A0A0A] text-gray-500 border-[#2A1A1F]"}`}
+                >
+                  {step.icon}
+                </div>
+                <span className={`font-bold uppercase tracking-widest text-[10px] md:text-xs text-center
+                  ${currentStatusIndex >= i ? "text-[#C9A84C]" : "text-gray-600"}`}>
+                  {step.label}
+                </span>
               </div>
-              <span className={`font-medium ${currentStatusIndex >= i ? "text-white" : "text-gray-500"}`}>{step.label}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12">
-        <h2 className="text-xl font-bold mb-6">Order Details</h2>
-        <div className="space-y-4 mb-8">
-          {items.map((item, idx) => (
-            <div key={idx} className="flex justify-between items-center py-4 border-b border-white/10 last:border-0">
-              <div className="flex items-center gap-4">
-                <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-medium">{item.quantity}x</span>
-                <span className="font-medium text-gray-200">{item.name}</span>
+        <div className="bg-[#111111] border border-[#2A1A1F] rounded-3xl p-8 md:p-12 shadow-xl">
+          <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold mb-8 border-b border-[#2A1A1F] pb-4 text-[#F5F0E8]">Receipt</h2>
+          <div className="space-y-6 mb-8">
+            {items.map((item, idx) => (
+              <div key={idx} className="flex justify-between items-center text-sm md:text-base">
+                <div className="flex items-center gap-4">
+                  <span className="w-8 h-8 rounded-full bg-[#2A1A1F] text-[#C9A84C] flex items-center justify-center font-bold">{item.quantity}x</span>
+                  <span className="font-medium text-[#F5F0E8]">{item.name}</span>
+                </div>
+                <span className="text-gray-400 font-medium">${(Number(item.price) * item.quantity).toFixed(2)}</span>
               </div>
-              <span className="text-gray-400">${(Number(item.price) * item.quantity).toFixed(2)}</span>
-            </div>
-          ))}
+            ))}
+          </div>
+          <div className="flex justify-between items-end pt-8 border-t border-[#2A1A1F]">
+            <span className="text-gray-400 uppercase tracking-widest text-xs font-bold">Total Paid</span>
+            <span className="font-[family-name:var(--font-playfair)] text-4xl font-bold text-[#C9A84C]">${Number(orderInfo.totalAmount).toFixed(2)}</span>
+          </div>
         </div>
-        <div className="flex justify-between items-center pt-6 border-t border-white/10">
-          <span className="text-xl font-bold">Total Paid</span>
-          <span className="text-2xl font-bold">${Number(orderInfo.totalAmount).toFixed(2)}</span>
-        </div>
-      </div>
 
-      <div className="mt-8 text-center">
-        <Link href="/menu" className="text-gray-400 hover:text-white transition text-sm">← Continue Shopping</Link>
+        <div className="mt-12 text-center">
+          <Link href="/menu" className="inline-flex items-center text-gray-400 hover:text-[#C9A84C] transition font-bold uppercase tracking-widest text-sm">
+            <Clock className="w-4 h-4 mr-2" /> Place Another Order
+          </Link>
+        </div>
       </div>
     </div>
   );

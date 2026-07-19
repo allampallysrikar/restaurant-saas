@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Users, CheckCircle, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Users, CheckCircle, AlertCircle, Mail, Phone, ArrowRight, User } from "lucide-react";
 import { createReservation, getBookedSlots } from "@/app/actions/reservations";
 
 export default function ReservationsPage() {
@@ -50,27 +50,38 @@ export default function ReservationsPage() {
     }
   };
 
+  const timeSlots = ["12:00", "13:00", "14:00", "19:00", "20:00", "21:00", "21:30"];
+  const formatTime = (time24: string) => {
+    const [h, m] = time24.split(":");
+    const hours = parseInt(h);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12;
+    return `${hours12}:${m} ${ampm}`;
+  };
+
   if (success) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center px-6 py-24">
+      <div className="min-h-screen bg-[#0A0A0A] text-[#F5F0E8] flex items-center justify-center px-6 py-24 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80')] bg-cover bg-center bg-blend-overlay bg-black/80">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white/5 border border-white/10 rounded-3xl p-8 text-center"
+          className="max-w-md w-full bg-[#111111]/90 backdrop-blur-xl border border-[#2A1A1F] rounded-3xl p-10 text-center shadow-2xl"
         >
-          <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-6" />
-          <h2 className="text-3xl font-bold mb-4">Table Reserved!</h2>
-          <p className="text-gray-400 mb-6">
-            We have received your reservation request for <span className="text-white font-medium">{formData.guestsCount} guests</span> on <span className="text-white font-medium">{formData.date}</span> at <span className="text-white font-medium">{formData.time}</span>.
+          <div className="w-20 h-20 bg-[#7C1D35]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#7C1D35]/30">
+            <CheckCircle className="w-10 h-10 text-[#C9A84C]" />
+          </div>
+          <h2 className="font-[family-name:var(--font-playfair)] text-4xl font-bold mb-4 text-[#F5F0E8]">Table Reserved</h2>
+          <p className="text-gray-400 mb-8 leading-relaxed">
+            We look forward to hosting you. Your reservation for <span className="text-[#C9A84C] font-semibold">{formData.guestsCount} guests</span> on <span className="text-[#C9A84C] font-semibold">{formData.date}</span> at <span className="text-[#C9A84C] font-semibold">{formatTime(formData.time)}</span> is confirmed.
           </p>
-          <div className="p-4 bg-white/5 rounded-2xl mb-8 text-left text-sm space-y-2 border border-white/5">
-            <div className="flex justify-between"><span className="text-gray-500">Name:</span> <span className="text-gray-300">{formData.guestName}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Email:</span> <span className="text-gray-300">{formData.guestEmail}</span></div>
-            {formData.specialReq && <div className="flex justify-between"><span className="text-gray-500">Notes:</span> <span className="text-gray-300">{formData.specialReq}</span></div>}
+          <div className="p-6 bg-[#0A0A0A] rounded-2xl mb-8 text-left text-sm space-y-4 border border-[#2A1A1F]">
+            <div className="flex justify-between"><span className="text-gray-500">Name</span> <span className="text-[#F5F0E8] font-medium">{formData.guestName}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Email</span> <span className="text-[#F5F0E8] font-medium">{formData.guestEmail}</span></div>
+            {formData.specialReq && <div className="flex justify-between"><span className="text-gray-500">Notes</span> <span className="text-[#F5F0E8] font-medium max-w-[60%] text-right">{formData.specialReq}</span></div>}
           </div>
           <button
             onClick={() => { setSuccess(false); setFormData({ guestName: "", guestEmail: "", guestPhone: "", date: "", time: "19:00", guestsCount: 2, specialReq: "" }); }}
-            className="w-full py-4 bg-white text-black font-semibold rounded-2xl hover:bg-gray-200 transition"
+            className="w-full py-4 bg-[#C9A84C] text-[#0A0A0A] font-bold rounded-xl hover:bg-white transition shadow-lg"
           >
             Book Another Table
           </button>
@@ -80,142 +91,169 @@ export default function ReservationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-24">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
-            Reserve <span className="bg-gradient-to-r from-gray-200 to-gray-500 bg-clip-text text-transparent">Your Table</span>
-          </h1>
-          <p className="text-gray-400 max-w-xl mx-auto">
-            Experience culinary excellence in an intimate, modern ambiance. Book online for instant table confirmation.
-          </p>
+    <div className="min-h-screen bg-[#0A0A0A] text-[#F5F0E8] flex flex-col relative">
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-30 mix-blend-luminosity"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-[#0A0A0A]"></div>
+      
+      <div className="flex-1 w-full flex items-center justify-center px-6 py-24 relative z-10">
+        <div className="max-w-2xl w-full">
+          <div className="text-center mb-12">
+            <h1 className="font-[family-name:var(--font-playfair)] text-5xl md:text-7xl font-bold tracking-tight mb-4 text-[#F5F0E8] drop-shadow-lg">
+              Reserve Your Table
+            </h1>
+            <p className="text-gray-300 max-w-lg mx-auto text-lg drop-shadow-md">
+              Experience culinary excellence in an intimate, modern ambiance.
+            </p>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-[#111111]/80 backdrop-blur-xl border border-[#2A1A1F] rounded-3xl p-8 md:p-12 shadow-2xl"
+          >
+            {error && (
+              <div className="mb-8 p-4 bg-red-900/20 border border-red-500/30 rounded-2xl flex items-center text-red-400 text-sm">
+                <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-[#C9A84C] uppercase tracking-widest mb-2">Guest Name</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <input
+                      type="text"
+                      required
+                      value={formData.guestName}
+                      onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
+                      placeholder="John Doe"
+                      className="w-full pl-12 pr-4 py-3.5 bg-black/50 border border-[#2A1A1F] rounded-xl focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] text-[#F5F0E8] placeholder-gray-600 transition"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#C9A84C] uppercase tracking-widest mb-2">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <input
+                      type="email"
+                      required
+                      value={formData.guestEmail}
+                      onChange={(e) => setFormData({ ...formData, guestEmail: e.target.value })}
+                      placeholder="john@example.com"
+                      className="w-full pl-12 pr-4 py-3.5 bg-black/50 border border-[#2A1A1F] rounded-xl focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] text-[#F5F0E8] placeholder-gray-600 transition"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-[#C9A84C] uppercase tracking-widest mb-2">Date</label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
+                    <input
+                      type="date"
+                      required
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      className="w-full pl-12 pr-4 py-3.5 bg-black/50 border border-[#2A1A1F] rounded-xl focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] text-[#F5F0E8] transition [color-scheme:dark]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#C9A84C] uppercase tracking-widest mb-2">Time</label>
+                  <div className="relative">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
+                    <select
+                      value={formData.time}
+                      onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                      className="w-full pl-12 pr-4 py-3.5 bg-black/50 border border-[#2A1A1F] rounded-xl focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] text-[#F5F0E8] transition appearance-none"
+                    >
+                      {timeSlots.map(slot => (
+                        <option key={slot} value={slot} disabled={bookedSlots.includes(slot)}>
+                          {formatTime(slot)} {bookedSlots.includes(slot) ? "(Fully Booked)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#C9A84C] uppercase tracking-widest mb-2">Guests</label>
+                  <div className="relative flex items-center bg-black/50 border border-[#2A1A1F] rounded-xl focus-within:border-[#C9A84C] focus-within:ring-1 focus-within:ring-[#C9A84C] transition">
+                    <Users className="absolute left-4 w-5 h-5 text-gray-500 pointer-events-none" />
+                    <button 
+                      type="button"
+                      onClick={() => setFormData({ ...formData, guestsCount: Math.max(1, formData.guestsCount - 1) })}
+                      className="absolute left-10 p-2 text-gray-400 hover:text-[#C9A84C]"
+                    >
+                      -
+                    </button>
+                    <input 
+                      type="number"
+                      min={1} max={10}
+                      readOnly
+                      value={formData.guestsCount}
+                      className="w-full text-center py-3.5 bg-transparent border-none focus:outline-none text-[#F5F0E8] font-medium"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setFormData({ ...formData, guestsCount: Math.min(10, formData.guestsCount + 1) })}
+                      className="absolute right-4 p-2 text-gray-400 hover:text-[#C9A84C]"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#C9A84C] uppercase tracking-widest mb-2">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <input
+                    type="tel"
+                    value={formData.guestPhone}
+                    onChange={(e) => setFormData({ ...formData, guestPhone: e.target.value })}
+                    placeholder="+1 (555) 000-0000"
+                    className="w-full pl-12 pr-4 py-3.5 bg-black/50 border border-[#2A1A1F] rounded-xl focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] text-[#F5F0E8] placeholder-gray-600 transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#C9A84C] uppercase tracking-widest mb-2">Special Requests</label>
+                <textarea
+                  rows={3}
+                  value={formData.specialReq}
+                  onChange={(e) => setFormData({ ...formData, specialReq: e.target.value })}
+                  placeholder="Allergies, anniversary celebration, seating preferences..."
+                  className="w-full px-4 py-3.5 bg-black/50 border border-[#2A1A1F] rounded-xl focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] text-[#F5F0E8] placeholder-gray-600 transition resize-none"
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-[#7C1D35] text-[#F5F0E8] font-bold rounded-xl hover:bg-[#C9A84C] hover:text-[#0A0A0A] transition shadow-lg disabled:opacity-50 flex items-center justify-center text-lg mt-4 group"
+              >
+                {loading ? (
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    Confirm Reservation <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+            </form>
+          </motion.div>
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl backdrop-blur-md"
-        >
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center text-red-400 text-sm">
-              <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Guest Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.guestName}
-                  onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
-                  placeholder="John Doe"
-                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/40 text-white placeholder-gray-500 transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Email Address *</label>
-                <input
-                  type="email"
-                  required
-                  value={formData.guestEmail}
-                  onChange={(e) => setFormData({ ...formData, guestEmail: e.target.value })}
-                  placeholder="john@example.com"
-                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/40 text-white placeholder-gray-500 transition"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-                  <Calendar className="w-4 h-4 mr-2 text-gray-400" /> Date *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/40 text-white transition [color-scheme:dark]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-                  <Clock className="w-4 h-4 mr-2 text-gray-400" /> Time *
-                </label>
-                <select
-                  value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/40 text-white transition [color-scheme:dark]"
-                >
-                  <option value="17:00" disabled={bookedSlots.includes("17:00")}>5:00 PM {bookedSlots.includes("17:00") && "(Booked)"}</option>
-                  <option value="17:30" disabled={bookedSlots.includes("17:30")}>5:30 PM {bookedSlots.includes("17:30") && "(Booked)"}</option>
-                  <option value="18:00" disabled={bookedSlots.includes("18:00")}>6:00 PM {bookedSlots.includes("18:00") && "(Booked)"}</option>
-                  <option value="18:30" disabled={bookedSlots.includes("18:30")}>6:30 PM {bookedSlots.includes("18:30") && "(Booked)"}</option>
-                  <option value="19:00" disabled={bookedSlots.includes("19:00")}>7:00 PM {bookedSlots.includes("19:00") && "(Booked)"}</option>
-                  <option value="19:30" disabled={bookedSlots.includes("19:30")}>7:30 PM {bookedSlots.includes("19:30") && "(Booked)"}</option>
-                  <option value="20:00" disabled={bookedSlots.includes("20:00")}>8:00 PM {bookedSlots.includes("20:00") && "(Booked)"}</option>
-                  <option value="20:30" disabled={bookedSlots.includes("20:30")}>8:30 PM {bookedSlots.includes("20:30") && "(Booked)"}</option>
-                  <option value="21:00" disabled={bookedSlots.includes("21:00")}>9:00 PM {bookedSlots.includes("21:00") && "(Booked)"}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-                  <Users className="w-4 h-4 mr-2 text-gray-400" /> Guests *
-                </label>
-                <select
-                  value={formData.guestsCount}
-                  onChange={(e) => setFormData({ ...formData, guestsCount: Number(e.target.value) })}
-                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/40 text-white transition [color-scheme:dark]"
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 10, 12].map((num) => (
-                    <option key={num} value={num}>{num} {num === 1 ? "Guest" : "Guests"}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
-              <input
-                type="tel"
-                value={formData.guestPhone}
-                onChange={(e) => setFormData({ ...formData, guestPhone: e.target.value })}
-                placeholder="+1 (555) 000-0000"
-                className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/40 text-white placeholder-gray-500 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Special Requests (Optional)</label>
-              <textarea
-                rows={3}
-                value={formData.specialReq}
-                onChange={(e) => setFormData({ ...formData, specialReq: e.target.value })}
-                placeholder="Allergies, anniversary celebration, window seating preference..."
-                className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-white/40 text-white placeholder-gray-500 transition resize-none"
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-white text-black font-bold rounded-2xl hover:bg-gray-200 transition shadow-lg disabled:opacity-50 flex items-center justify-center text-base"
-            >
-              {loading ? (
-                <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                "Confirm Table Reservation"
-              )}
-            </button>
-          </form>
-        </motion.div>
       </div>
     </div>
   );
