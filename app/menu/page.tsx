@@ -6,6 +6,7 @@ import { Plus, Search, Filter, X, Star, MessageSquare, Send, Check, ShoppingBag,
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { getReviewsForMenuItem, createReview } from "@/app/actions/reviews";
 import Link from "next/link";
+import TableServiceBar from "@/components/TableServiceBar";
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -377,6 +378,13 @@ export default function MenuPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating QR Table Hospitality Bar when browsing menu via table QR */}
+      {tableNum && (
+        <div className="fixed bottom-0 inset-x-0 z-50">
+          <TableServiceBar tableId={tableNum} />
+        </div>
+      )}
     </div>
   );
 }

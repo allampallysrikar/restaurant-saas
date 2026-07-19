@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { getLiveMenu } from "@/app/actions/menu";
 import { createOrder } from "@/app/actions/orders";
-import { Plus, Minus, Trash2, Search, CheckCircle, Receipt, Scissors, ShieldAlert, Lock, Unlock, Users, Tag, AlertCircle, ArrowRightLeft } from "lucide-react";
+import { getLiveServiceCalls, acknowledgeServiceCall, resolveServiceCall, TableServiceCall } from "@/app/actions/table-service";
+import { Plus, Minus, Trash2, Search, CheckCircle, Receipt, Scissors, ShieldAlert, Lock, Unlock, Users, Tag, AlertCircle, ArrowRightLeft, Bell, Droplets, Check } from "lucide-react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 
 interface MenuItem {
@@ -70,10 +71,26 @@ export default function POSPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState<string | null>(null);
+  const [serviceCalls, setServiceCalls] = useState<TableServiceCall[]>([]);
 
   useEffect(() => {
     getLiveMenu().then((items) => setMenu(items as MenuItem[]));
+    getLiveServiceCalls().then((calls) => setServiceCalls(calls as TableServiceCall[]));
+    const interval = setInterval(() => {
+      getLiveServiceCalls().then((calls) => setServiceCalls(calls as TableServiceCall[]));
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
+
+  const handleAckCall = async (callId: string) => {
+    setServiceCalls(prev => prev.map(c => c.id === callId ? { ...c, status: "ACKNOWLEDGED" } : c));
+    await acknowledgeServiceCall(callId);
+  };
+
+  const handleResolveCall = async (callId: string) => {
+    setServiceCalls(prev => prev.filter(c => c.id !== callId));
+    await resolveServiceCall(callId);
+  };
 
   const categories = ["All", ...Array.from(new Set(menu.map(item => item.category?.name || "Uncategorized")))];
 
@@ -241,6 +258,61 @@ export default function POSPage() {
       
       {/* Left Column - Menu & Search (62%) */}
       <div className="w-full md:w-[62%] flex flex-col border-r border-[#2A1A1F] h-full p-4">
+        {/* Live Table Service Calls Alert Banner */}
+        <AnimatePresence>
+          {serviceCalls.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4 space-y-2 overflow-hidden"
+            >
+              {serviceCalls.map((call) => (
+                <div
+                  key={call.id}
+                  className={`p-3 rounded-2xl border flex items-center justify-between shadow-lg transition-all ${
+                    call.status === "PENDING"
+                      ? "bg-amber-500/15 border-amber-500/60 text-amber-300 animate-pulse"
+                      : "bg-[#181818] border-[#2A1A1F] text-gray-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl font-bold ${call.status === "PENDING" ? "bg-amber-500 text-black" : "bg-[#2A1A1F] text-[#C9A84C]"}`}>
+                      {call.requestType === "CALL_WAITER" && <Bell className="w-4 h-4 fill-current animate-bounce" />}
+                      {call.requestType === "REFILL_WATER" && <Droplets className="w-4 h-4" />}
+                      {call.requestType === "REQUEST_BILL" && <Receipt className="w-4 h-4" />}
+                      {call.requestType === "CALL_MANAGER" && <ShieldAlert className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-white flex items-center gap-2">
+                        {call.tableId} • <span className="text-[#C9A84C] font-mono uppercase">{call.requestType.replace("_", " ")}</span>
+                      </h4>
+                      <p className="text-[10px] text-gray-400 font-mono">Status: {call.status} • {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {call.status === "PENDING" && (
+                      <button
+                        onClick={() => handleAckCall(call.id)}
+                        className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-black text-xs transition"
+                      >
+                        Acknowledge
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleResolveCall(call.id)}
+                      className="px-3 py-1.5 rounded-lg bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs transition flex items-center gap-1"
+                    >
+                      <Check className="w-3.5 h-3.5" /> Resolve
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Top Search & Manager Status Bar */}
         <div className="flex flex-col sm:flex-row gap-3 mb-4 justify-between items-start sm:items-center">
           <div className="relative flex-1 w-full">

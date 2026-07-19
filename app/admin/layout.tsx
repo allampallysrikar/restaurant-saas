@@ -1,5 +1,5 @@
 import React from "react";
-import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users, LogOut, Monitor, Tablet, QrCode } from "lucide-react";
+import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users, LogOut, Monitor, Tablet, QrCode, Printer, BarChart3, Building2 } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { neon } from "@neondatabase/serverless";
@@ -25,39 +25,57 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#111111] border-r border-[#2A1A1F] flex-col hidden md:flex">
-        <div className="h-16 flex items-center px-6 border-b border-[#2A1A1F]">
-          <span className="font-bold text-xl tracking-tight text-[#C9A84C]">The Golden Fork</span>
+      <aside className="w-64 bg-[#111111] border-r border-[#2A1A1F] flex-col hidden md:flex overflow-y-auto">
+        <div className="p-4 border-b border-[#2A1A1F]">
+          <span className="font-bold text-xl tracking-tight text-[#C9A84C] block px-2">The Golden Fork</span>
+          {/* Branch & Terminal Scoping Badge */}
+          <div className="mt-2.5 p-2 bg-[#0A0A0A] rounded-xl border border-[#2A1A1F] flex items-center gap-2 text-xs text-gray-300 shadow-inner">
+            <Building2 className="w-4 h-4 text-[#C9A84C] flex-shrink-0" />
+            <div className="truncate">
+              <div className="font-bold text-white truncate">Downtown Flagship</div>
+              <div className="text-[10px] text-emerald-400 font-mono">● Terminal #1 Active</div>
+            </div>
+          </div>
         </div>
         
-        <nav className="flex-1 py-6 px-4 space-y-2">
-          <a href="/admin" className="flex items-center px-4 py-3 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
-            <LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard
+        <nav className="flex-1 py-4 px-4 space-y-1.5 text-sm">
+          <a href="/admin" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <LayoutDashboard className="w-4 h-4 mr-3" /> Dashboard
           </a>
-          <a href="/admin/orders" className="flex items-center px-4 py-3 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition justify-between">
+          <a href="/admin/orders" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition justify-between">
             <div className="flex items-center">
-              <ShoppingBag className="w-5 h-5 mr-3" /> Orders
+              <ShoppingBag className="w-4 h-4 mr-3" /> Orders
             </div>
             {pendingOrders > 0 && (
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
                 ● {pendingOrders}
               </span>
             )}
           </a>
-          <a href="/admin/reservations" className="flex items-center px-4 py-3 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
-            <Users className="w-5 h-5 mr-3" /> Reservations
+          <a href="/admin/reservations" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Users className="w-4 h-4 mr-3" /> Reservations
           </a>
-          <a href="/admin/menu" className="flex items-center px-4 py-3 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
-            <UtensilsCrossed className="w-5 h-5 mr-3" /> Menu Items
+          <a href="/admin/menu" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <UtensilsCrossed className="w-4 h-4 mr-3" /> Menu Items
           </a>
-          <a href="/admin/kds" className="flex items-center px-4 py-3 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
-            <Monitor className="w-5 h-5 mr-3" /> KDS
+          <a href="/admin/kds" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Monitor className="w-4 h-4 mr-3" /> KDS
           </a>
-          <a href="/admin/pos" className="flex items-center px-4 py-3 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
-            <Tablet className="w-5 h-5 mr-3" /> POS Terminal
+          <a href="/admin/pos" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Tablet className="w-4 h-4 mr-3" /> POS Terminal
           </a>
-          <a href="/admin/qr" className="flex items-center px-4 py-3 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
-            <QrCode className="w-5 h-5 mr-3" /> QR Stands
+          <a href="/admin/qr" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <QrCode className="w-4 h-4 mr-3" /> QR Stands
+          </a>
+          
+          <div className="pt-2 pb-1 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">
+            BI & Hardware
+          </div>
+          <a href="/admin/analytics" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <BarChart3 className="w-4 h-4 mr-3 text-[#C9A84C]" /> Menu Engineering BI
+          </a>
+          <a href="/admin/hardware" className="flex items-center px-4 py-2.5 text-[#F5F0E8]/70 hover:bg-[#7C1D35]/20 hover:text-[#C9A84C] rounded-xl transition">
+            <Printer className="w-4 h-4 mr-3 text-[#C9A84C]" /> ESC/POS Hardware
           </a>
         </nav>
 
@@ -74,11 +92,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       {/* Mobile Top Bar */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-[#111111] border-b border-[#2A1A1F] flex items-center justify-between px-6 md:hidden">
-          <span className="font-bold text-xl text-[#C9A84C]">The Golden Fork</span>
-          <div className="flex gap-4 text-sm text-[#F5F0E8]/70">
-            <a href="/admin/orders">Orders</a>
-            <a href="/admin/pos">POS</a>
+        <header className="h-16 bg-[#111111] border-b border-[#2A1A1F] flex items-center justify-between px-4 md:hidden overflow-x-auto">
+          <span className="font-bold text-lg text-[#C9A84C] whitespace-nowrap mr-4">Golden Fork</span>
+          <div className="flex gap-3 text-xs text-[#F5F0E8]/80 whitespace-nowrap">
+            <a href="/admin/orders" className="hover:text-[#C9A84C]">Orders</a>
+            <a href="/admin/pos" className="hover:text-[#C9A84C]">POS</a>
+            <a href="/admin/kds" className="hover:text-[#C9A84C]">KDS</a>
+            <a href="/admin/analytics" className="hover:text-[#C9A84C]">BI Matrix</a>
+            <a href="/admin/hardware" className="hover:text-[#C9A84C]">Hardware</a>
           </div>
         </header>
 
