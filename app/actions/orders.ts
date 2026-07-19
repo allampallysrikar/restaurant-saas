@@ -9,12 +9,16 @@ function getDb() {
   return neon(url);
 }
 
-export async function createOrder(items: { id: string, quantity: number, price: number }[], total: number) {
+export async function createOrder(
+  items: { id: string; quantity: number; price: number }[],
+  total: number,
+  deliveryAdd?: string
+) {
   try {
     const sql = getDb();
     const [order] = await sql`
-      INSERT INTO "Order" (id, "totalAmount", status, "createdAt", "updatedAt")
-      VALUES (gen_random_uuid(), ${total}, 'PENDING', NOW(), NOW())
+      INSERT INTO "Order" (id, "totalAmount", status, "deliveryAdd", "createdAt", "updatedAt")
+      VALUES (gen_random_uuid(), ${total}, 'PENDING', ${deliveryAdd || null}, NOW(), NOW())
       RETURNING id
     `;
     for (const item of items) {
@@ -36,7 +40,7 @@ export async function getLiveOrders() {
     const sql = getDb();
     const orders = await sql`
       SELECT 
-        o.id, o.status, o."totalAmount", o."createdAt",
+        o.id, o.status, o."totalAmount", o."createdAt", o."deliveryAdd",
         oi.id as "item_id", oi.quantity, oi."priceAtTime",
         m.name as "item_name"
       FROM "Order" o
@@ -54,6 +58,7 @@ export async function getLiveOrders() {
           status: row.status,
           totalAmount: row.totalAmount,
           createdAt: row.createdAt,
+          deliveryAdd: row.deliveryAdd,
           items: [],
         };
       }

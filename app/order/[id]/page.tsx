@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { Package, MapPin, CheckCircle, Clock } from "lucide-react";
+import { Package, MapPin, CheckCircle, Clock, Download } from "lucide-react";
 import Link from "next/link";
 
 function getDb() {
@@ -71,15 +71,29 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
     <div className="bg-[#0A0A0A] text-[#F5F0E8] min-h-screen pb-24 pt-32">
       <div className="container mx-auto px-6 max-w-4xl">
         <div className="mb-12 text-center md:text-left">
-          <h1 className="font-[family-name:var(--font-playfair)] text-4xl md:text-6xl font-bold tracking-tight mb-4">
+          <h1 className="font-[family-name:var(--font-playfair)] text-4xl md:text-6xl font-bold tracking-tight mb-4 print:hidden">
             Track Your <span className="text-[#C9A84C]">Order</span>
           </h1>
-          <p className="text-gray-400 uppercase tracking-widest text-sm font-bold">
-            Order ID: <span className="text-[#F5F0E8] ml-2">{orderInfo.id.split('-')[0]}...</span>
+          <h1 className="hidden print:block font-[family-name:var(--font-playfair)] text-4xl font-bold mb-4 text-[#0A0A0A]">
+            THE GOLDEN FORK - OFFICIAL TAX INVOICE
+          </h1>
+          <p className="text-gray-400 print:text-gray-800 uppercase tracking-widest text-sm font-bold">
+            Order ID: <span className="text-[#F5F0E8] print:text-black ml-2">{orderInfo.id.split('-')[0]}...</span>
+            <span className="ml-4 print:hidden hidden md:inline">| Date: {new Date(orderInfo.createdAt).toLocaleString()}</span>
+            <span className="hidden print:inline ml-4">| Date & Time: {new Date(orderInfo.createdAt).toLocaleString()} | Dine-in / Online</span>
           </p>
         </div>
 
-        <div className="bg-[#111111] border border-[#2A1A1F] rounded-3xl p-8 md:p-12 mb-8 shadow-xl">
+        <div className="flex justify-end mb-4 print:hidden">
+          <button 
+            onClick={() => { if (typeof window !== 'undefined') window.print(); }}
+            className="flex items-center text-sm font-bold text-[#C9A84C] hover:text-[#F5F0E8] transition-colors"
+          >
+            <Download className="w-4 h-4 mr-2" /> Download / Print Tax Receipt
+          </button>
+        </div>
+
+        <div className="bg-[#111111] print:bg-white print:border-none border border-[#2A1A1F] rounded-3xl p-8 md:p-12 mb-8 shadow-xl print:shadow-none print:p-0 print:mb-4 print:hidden">
           <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold mb-12 text-center md:text-left border-b border-[#2A1A1F] pb-4 text-[#F5F0E8]">Status</h2>
 
           {/* Progress Bar */}
@@ -114,31 +128,53 @@ export default async function OrderTrackingPage({ params }: { params: { id: stri
           </div>
         </div>
 
-        <div className="bg-[#111111] border border-[#2A1A1F] rounded-3xl p-8 md:p-12 shadow-xl">
-          <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold mb-8 border-b border-[#2A1A1F] pb-4 text-[#F5F0E8]">Receipt</h2>
+        <div className="bg-[#111111] print:bg-white border border-[#2A1A1F] print:border-none rounded-3xl p-8 md:p-12 shadow-xl print:shadow-none print:p-0 relative">
+          <div className="hidden print:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none rotate-[-30deg]">
+            <span className="font-[family-name:var(--font-playfair)] text-8xl font-black text-black tracking-widest border-8 border-black p-4 rounded-xl">
+              [ PAID IN FULL ]
+            </span>
+          </div>
+          
+          <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold mb-8 border-b border-[#2A1A1F] print:border-gray-300 pb-4 text-[#F5F0E8] print:text-black">Receipt</h2>
           <div className="space-y-6 mb-8">
             {items.map((item, idx) => (
               <div key={idx} className="flex justify-between items-center text-sm md:text-base">
                 <div className="flex items-center gap-4">
-                  <span className="w-8 h-8 rounded-full bg-[#2A1A1F] text-[#C9A84C] flex items-center justify-center font-bold">{item.quantity}x</span>
-                  <span className="font-medium text-[#F5F0E8]">{item.name}</span>
+                  <span className="w-8 h-8 rounded-full bg-[#2A1A1F] print:bg-gray-100 text-[#C9A84C] print:text-black flex items-center justify-center font-bold">{item.quantity}x</span>
+                  <span className="font-medium text-[#F5F0E8] print:text-black">{item.name}</span>
                 </div>
-                <span className="text-gray-400 font-medium">${(Number(item.price) * item.quantity).toFixed(2)}</span>
+                <span className="text-gray-400 print:text-black font-medium">${(Number(item.price) * item.quantity).toFixed(2)}</span>
               </div>
             ))}
           </div>
-          <div className="flex justify-between items-end pt-8 border-t border-[#2A1A1F]">
-            <span className="text-gray-400 uppercase tracking-widest text-xs font-bold">Total Paid</span>
-            <span className="font-[family-name:var(--font-playfair)] text-4xl font-bold text-[#C9A84C]">${Number(orderInfo.totalAmount).toFixed(2)}</span>
+          
+          <div className="hidden print:flex justify-between items-end pt-4 mb-2">
+            <span className="text-black uppercase tracking-widest text-xs font-bold">Subtotal</span>
+            <span className="text-black">${(Number(orderInfo.totalAmount) / 1.08).toFixed(2)}</span>
+          </div>
+          <div className="hidden print:flex justify-between items-end pb-4 border-b border-gray-300 mb-4">
+            <span className="text-black uppercase tracking-widest text-xs font-bold">Tax (8%)</span>
+            <span className="text-black">${(Number(orderInfo.totalAmount) - (Number(orderInfo.totalAmount) / 1.08)).toFixed(2)}</span>
+          </div>
+
+          <div className="flex justify-between items-end pt-8 print:pt-4 border-t border-[#2A1A1F] print:border-none">
+            <span className="text-gray-400 print:text-black uppercase tracking-widest text-xs font-bold">Total Paid</span>
+            <span className="font-[family-name:var(--font-playfair)] text-4xl font-bold text-[#C9A84C] print:text-black">${Number(orderInfo.totalAmount).toFixed(2)}</span>
           </div>
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="mt-12 text-center print:hidden">
           <Link href="/menu" className="inline-flex items-center text-gray-400 hover:text-[#C9A84C] transition font-bold uppercase tracking-widest text-sm">
             <Clock className="w-4 h-4 mr-2" /> Place Another Order
           </Link>
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          body { background: white !important; color: black !important; }
+          nav, footer, header { display: none !important; }
+        }
+      `}} />
     </div>
   );
 }

@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useCartStore } from "@/features/cart/store";
-import { Plus, Search, Filter, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Search, Filter, X, Star, MessageSquare, Send } from "lucide-react";
+import { motion, AnimatePresence, Variants } from "framer-motion";
+import { getReviewsForMenuItem, createReview } from "@/app/actions/reviews";
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -12,22 +13,51 @@ export default function MenuPage() {
   const addItem = useCartStore((state) => state.addItem);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tableNum, setTableNum] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewFormOpen, setReviewFormOpen] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [newName, setNewName] = useState("");
+  const [newComment, setNewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     import("@/app/actions/menu").then(m => m.getLiveMenu().then(data => {
       setMenuItems(data);
       setLoading(false);
     }));
+    
+    // Check for table in URL or localStorage
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("table") || localStorage.getItem("golden_fork_table");
+    if (t) setTableNum(t);
   }, []);
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
     if (selectedItem) {
       document.body.style.overflow = "hidden";
+      getReviewsForMenuItem(selectedItem.id).then(setReviews);
     } else {
       document.body.style.overflow = "unset";
+      setReviewFormOpen(false);
     }
   }, [selectedItem]);
+
+  const handleReviewSubmit = async () => {
+    if (!newName || !newComment) return;
+    setSubmittingReview(true);
+    const res = await createReview(selectedItem.id, newRating, newComment, newName);
+    setSubmittingReview(false);
+    if (res.success) {
+      setReviewFormOpen(false);
+      setNewName("");
+      setNewComment("");
+      setNewRating(5);
+      // Refresh reviews
+      getReviewsForMenuItem(selectedItem.id).then(setReviews);
+    }
+  };
 
   const MOCK_CATEGORIES = ["All", ...Array.from(new Set(menuItems.map(i => i.category?.name || "General")))];
 
@@ -122,7 +152,13 @@ export default function MenuPage() {
                   </div>
                 </div>
                 <div className="p-6 pb-2 relative z-10 -mt-8">
-                  <div className="text-[10px] text-[#C9A84C] font-bold uppercase tracking-widest mb-2 drop-shadow-md">{item.category?.name || "General"}</div>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="text-[10px] text-[#C9A84C] font-bold uppercase tracking-widest drop-shadow-md">{item.category?.name || "General"}</div>
+                    <div className="flex items-center text-[#C9A84C] text-xs font-bold bg-[#111111] px-2 py-1 rounded-md border border-[#2A1A1F]">
+                      <Star className="w-3 h-3 mr-1 fill-current" />
+                      4.8 (24)
+                    </div>
+                  </div>
                   <motion.h3 layoutId={`title-${item.id}`} className="font-[family-name:var(--font-playfair)] text-2xl font-bold mb-3 text-[#F5F0E8] leading-tight group-hover:text-[#C9A84C] transition-colors">{item.name}</motion.h3>
                   <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">{item.description}</p>
                 </div>
@@ -194,7 +230,10 @@ export default function MenuPage() {
                 
                 <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-between relative z-10">
                   <div>
-                    <div className="text-xs text-[#C9A84C] font-bold uppercase tracking-widest mb-4">{selectedItem.category?.name || "General"}</div>
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="text-xs text-[#C9A84C] font-bold uppercase tracking-widest">{selectedItem.category?.name || "General"}</div>
+                      {tableNum && <div className="text-xs text-[#C9A84C] bg-[#7C1D35]/20 px-3 py-1 rounded-full border border-[#7C1D35]/50">Ordering for Table #{tableNum}</div>}
+                    </div>
                     <motion.h3 layoutId={`title-${selectedItem.id}`} className="font-[family-name:var(--font-playfair)] text-4xl md:text-5xl font-bold mb-6 text-[#F5F0E8] leading-tight">
                       {selectedItem.name}
                     </motion.h3>
@@ -202,9 +241,57 @@ export default function MenuPage() {
                       ${Number(selectedItem.price).toFixed(2)}
                     </p>
                     <div className="h-px w-full bg-gradient-to-r from-[#2A1A1F] via-[#2A1A1F] to-transparent mb-8" />
-                    <p className="text-gray-400 text-base leading-relaxed mb-8 max-h-40 overflow-y-auto pr-4 scrollbar-hide">
-                      {selectedItem.description}
-                    </p>
+                    <div className="max-h-64 overflow-y-auto pr-4 scrollbar-hide">
+                      <p className="text-gray-400 text-base leading-relaxed mb-8">
+                        {selectedItem.description}
+                      </p>
+                      
+                      {/* Reviews Section */}
+                      <div className="mt-8 border-t border-[#2A1A1F] pt-6">
+                        <div className="flex justify-between items-center mb-6">
+                          <h4 className="font-[family-name:var(--font-playfair)] text-2xl text-[#F5F0E8]">Customer Reviews</h4>
+                          <button onClick={() => setReviewFormOpen(!reviewFormOpen)} className="text-sm text-[#C9A84C] hover:text-[#F5F0E8] transition flex items-center">
+                            <MessageSquare className="w-4 h-4 mr-1" /> Leave a Review
+                          </button>
+                        </div>
+                        
+                        <AnimatePresence>
+                          {reviewFormOpen && (
+                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-8">
+                              <div className="bg-black/50 border border-[#2A1A1F] rounded-xl p-4">
+                                <div className="flex mb-4 gap-1">
+                                  {[1,2,3,4,5].map(star => (
+                                    <Star key={star} onClick={() => setNewRating(star)} className={`w-6 h-6 cursor-pointer ${star <= newRating ? "text-[#C9A84C] fill-current" : "text-gray-600"}`} />
+                                  ))}
+                                </div>
+                                <input type="text" placeholder="Your Name" value={newName} onChange={e => setNewName(e.target.value)} className="w-full bg-black/50 border border-[#2A1A1F] rounded-lg px-4 py-2 mb-4 text-[#F5F0E8] focus:border-[#C9A84C] outline-none" />
+                                <textarea placeholder="Share your thoughts on this dish..." value={newComment} onChange={e => setNewComment(e.target.value)} className="w-full bg-black/50 border border-[#2A1A1F] rounded-lg px-4 py-2 mb-4 text-[#F5F0E8] focus:border-[#C9A84C] outline-none resize-none" rows={3} />
+                                <button onClick={handleReviewSubmit} disabled={submittingReview} className="w-full py-2 bg-[#C9A84C] text-[#0A0A0A] font-bold rounded-lg hover:bg-white transition flex justify-center items-center">
+                                  {submittingReview ? "Submitting..." : <><Send className="w-4 h-4 mr-2" /> Submit Review</>}
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <div className="space-y-4">
+                          {reviews.length === 0 ? (
+                            <p className="text-gray-500 text-sm italic">No reviews yet. Be the first!</p>
+                          ) : (
+                            reviews.map((rev, i) => (
+                              <div key={i} className="bg-white/5 border border-[#2A1A1F] rounded-lg p-4">
+                                <div className="flex items-center gap-1 mb-2">
+                                  {[...Array(5)].map((_, idx) => (
+                                    <Star key={idx} className={`w-3 h-3 ${idx < rev.rating ? "text-[#C9A84C] fill-current" : "text-gray-600"}`} />
+                                  ))}
+                                </div>
+                                <p className="text-gray-300 text-sm mb-1">{rev.comment.replace(/\[Item: .*?\] \[User: (.*?)\] (.*)/, (match: string, p1: string, p2: string) => `"${p2}" - ${p1}`)}</p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
                   <button 
