@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { useCartStore } from "@/features/cart/store";
-import { Plus, Search, Filter, X, Star, MessageSquare, Send } from "lucide-react";
+import { Plus, Search, Filter, X, Star, MessageSquare, Send, Check, ShoppingBag, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { getReviewsForMenuItem, createReview } from "@/app/actions/reviews";
+import Link from "next/link";
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [menuItems, setMenuItems] = useState<any[]>([]);
-  const addItem = useCartStore((state) => state.addItem);
+  const { items: cartItems, addItem } = useCartStore();
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [tableNum, setTableNum] = useState<string | null>(null);
@@ -20,8 +21,11 @@ export default function MenuPage() {
   const [newName, setNewName] = useState("");
   const [newComment, setNewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [addedId, setAddedId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     import("@/app/actions/menu").then(m => m.getLiveMenu().then(data => {
       setMenuItems(data);
       setLoading(false);
@@ -59,81 +63,99 @@ export default function MenuPage() {
     }
   };
 
+  const handleAdd = (item: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    addItem({
+      id: item.id,
+      name: item.name,
+      price: Number(item.price),
+      image: item.image
+    });
+    setAddedId(item.id);
+    setTimeout(() => setAddedId(null), 1800);
+  };
+
   const MOCK_CATEGORIES = ["All", ...Array.from(new Set(menuItems.map(i => i.category?.name || "General")))];
 
   const filteredMenu = menuItems.filter((item) => {
     const matchesCategory = activeCategory === "All" || (item.category?.name || "General") === activeCategory;
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
+  const totalCount = cartItems.reduce((acc, i) => acc + i.quantity, 0);
+  const totalPrice = cartItems.reduce((acc, i) => acc + i.price * i.quantity, 0);
+
   return (
-    <div className="bg-[#0A0A0A] text-[#F5F0E8] min-h-screen pb-24 relative overflow-hidden">
-      {/* Subtle background image/pattern */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80')", backgroundSize: 'cover', backgroundPosition: 'center', mixBlendMode: 'overlay' }}></div>
-      
-      <div className="container mx-auto px-6 pt-32 pb-12 relative z-10">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div>
-            <h1 className="font-[family-name:var(--font-playfair)] text-5xl md:text-7xl font-bold tracking-tight mb-4">
-              Our <span className="underline decoration-[#C9A84C] decoration-4 underline-offset-8">Menu</span>
-            </h1>
-            <p className="text-gray-400 max-w-xl text-lg">Carefully curated dishes from our award-winning culinary team, prepared with the finest seasonal ingredients.</p>
+    <div className="bg-[#0A0A0A] text-[#F5F0E8] min-h-screen pb-32">
+      {/* Hero Header */}
+      <div className="relative py-24 bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80')] bg-cover bg-center">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-xs"></div>
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-[family-name:var(--font-playfair)] text-5xl md:text-7xl font-bold mb-4 tracking-tight"
+          >
+            Our <span className="underline decoration-[#C9A84C] decoration-4 underline-offset-8 text-[#C9A84C]">Menu</span>
+          </motion.h1>
+          <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base font-light">
+            An extraordinary culinary journey curated by Chef Marcus Laurent, blending timeless French tradition with modern gastronomic innovation.
+          </p>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 md:px-12 pt-12">
+        {/* Controls */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+          {/* Categories Pills */}
+          <div className="flex overflow-x-auto w-full md:w-auto gap-3 pb-2 scrollbar-hide">
+            {MOCK_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+                  activeCategory === cat
+                    ? "bg-[#7C1D35] text-[#C9A84C] border border-[#C9A84C] shadow-lg shadow-[#7C1D35]/30 scale-105"
+                    : "bg-[#111111] text-gray-400 border border-[#2A1A1F] hover:border-gray-600 hover:text-white"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-          
-          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input 
-                type="text" 
-                placeholder="Search dishes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#111111] border border-[#2A1A1F] rounded-full focus:outline-none focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C] text-sm transition-all text-[#F5F0E8] placeholder-gray-500 shadow-inner"
-              />
-            </div>
-            <button 
-              onClick={() => { setActiveCategory("All"); setSearchQuery(""); }}
-              className="flex items-center justify-center px-6 py-3 bg-[#111111] border border-[#2A1A1F] rounded-full hover:border-[#C9A84C] transition-colors text-sm text-[#C9A84C]"
-            >
-              <Filter className="w-4 h-4 mr-2" /> Reset
-            </button>
+
+          {/* Search Bar */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#C9A84C]" />
+            <input
+              type="text"
+              placeholder="Search dishes, ingredients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-[#111111] border border-[#2A1A1F] rounded-full text-sm text-[#F5F0E8] placeholder-gray-500 focus:outline-none focus:border-[#C9A84C] transition-colors"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Category Pills */}
-        <div className="flex overflow-x-auto pb-6 mb-8 space-x-3 scrollbar-hide">
-          {MOCK_CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-8 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap border tracking-wide ${
-                activeCategory === cat 
-                  ? "bg-[#7C1D35] text-[#C9A84C] border-[#7C1D35] shadow-lg shadow-[#7C1D35]/20" 
-                  : "bg-[#111111] text-gray-400 border-[#2A1A1F] hover:border-[#C9A84C]/50 hover:text-[#F5F0E8]"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        {/* Loading Skeletons */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="bg-[#111111] border border-[#2A1A1F] rounded-2xl h-96 animate-pulse"></div>
+            ))}
+          </div>
+        )}
 
         {/* Menu Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl bg-[#111111] border border-[#2A1A1F] overflow-hidden animate-pulse">
-                <div className="h-56 bg-white/5"></div>
-                <div className="p-6">
-                  <div className="h-3 w-1/4 bg-white/10 rounded mb-4"></div>
-                  <div className="h-6 w-3/4 bg-white/10 rounded mb-2"></div>
-                  <div className="h-4 w-full bg-white/5 rounded mb-1"></div>
-                  <div className="h-4 w-2/3 bg-white/5 rounded mt-4"></div>
-                  <div className="h-12 w-full bg-white/10 rounded-xl mt-6"></div>
-                </div>
-              </div>
-            ))
-          ) : filteredMenu.map((item, i) => (
+          {filteredMenu.map((item, i) => (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -165,18 +187,22 @@ export default function MenuPage() {
               </div>
               <div className="p-6 pt-4">
                 <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    addItem({
-                      id: item.id,
-                      name: item.name,
-                      price: Number(item.price),
-                      image: item.image
-                    });
-                  }}
-                  className="w-full py-3.5 bg-white/5 border border-[#2A1A1F] group-hover:bg-[#7C1D35] group-hover:border-[#7C1D35] text-[#F5F0E8] rounded-xl font-medium transition-all flex items-center justify-center"
+                  onClick={(e) => handleAdd(item, e)}
+                  className={`w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center shadow-md ${
+                    addedId === item.id
+                      ? "bg-[#10B981] text-white border border-[#10B981]"
+                      : "bg-white/5 border border-[#2A1A1F] group-hover:bg-[#7C1D35] group-hover:border-[#7C1D35] text-[#F5F0E8]"
+                  }`}
                 >
-                  <Plus className="w-5 h-5 mr-2" /> Add to Cart
+                  {addedId === item.id ? (
+                    <>
+                      <Check className="w-5 h-5 mr-2 animate-bounce" /> Added to Cart!
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-5 h-5 mr-2" /> Add to Cart
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>
@@ -296,17 +322,24 @@ export default function MenuPage() {
                   
                   <button 
                     onClick={() => {
-                      addItem({
-                        id: selectedItem.id,
-                        name: selectedItem.name,
-                        price: Number(selectedItem.price),
-                        image: selectedItem.image
-                      });
+                      handleAdd(selectedItem);
                       setSelectedItem(null);
                     }}
-                    className="w-full py-5 bg-[#7C1D35] text-[#F5F0E8] hover:bg-[#C9A84C] hover:text-[#0A0A0A] rounded-xl font-bold transition-colors flex items-center justify-center text-lg shadow-lg shadow-[#7C1D35]/20"
+                    className={`w-full py-5 rounded-xl font-bold transition-colors flex items-center justify-center text-lg shadow-lg ${
+                      addedId === selectedItem.id
+                        ? "bg-[#10B981] text-white"
+                        : "bg-[#7C1D35] text-[#F5F0E8] hover:bg-[#C9A84C] hover:text-[#0A0A0A] shadow-[#7C1D35]/20"
+                    }`}
                   >
-                    <Plus className="w-6 h-6 mr-2" /> Add to Order
+                    {addedId === selectedItem.id ? (
+                      <>
+                        <Check className="w-6 h-6 mr-2 animate-bounce" /> Added to Cart!
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-6 h-6 mr-2" /> Add to Order
+                      </>
+                    )}
                   </button>
                 </div>
               </motion.div>
@@ -314,6 +347,36 @@ export default function MenuPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Floating Sticky Cart Summary CTA */}
+      <AnimatePresence>
+        {mounted && totalCount > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 inset-x-6 md:inset-x-auto md:right-10 z-40"
+          >
+            <Link
+              href="/cart"
+              className="flex items-center justify-between gap-6 px-6 py-4 bg-[#7C1D35] text-[#F5F0E8] hover:bg-[#C9A84C] hover:text-[#0A0A0A] border-2 border-[#C9A84C] rounded-2xl shadow-2xl shadow-black/80 transition-all group scale-100 hover:scale-105"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#0A0A0A] text-[#C9A84C] flex items-center justify-center font-black text-sm border border-[#C9A84C]/50">
+                  {totalCount}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs uppercase tracking-widest font-bold opacity-80">Your Order</p>
+                  <p className="text-lg font-black font-[family-name:var(--font-playfair)]">${totalPrice.toFixed(2)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider">
+                View Cart <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </div>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

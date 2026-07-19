@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { CartBadge } from "@/components/CartBadge";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -55,11 +56,7 @@ export function Navbar() {
 
         {/* Right side (Desktop) */}
         <div className="hidden md:flex items-center gap-6">
-          <button className="text-cream hover:text-gold transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-          </button>
+          <CartBadge />
           <Link
             href="/reservations"
             className="bg-burgundy text-white px-6 py-2 rounded-sm text-sm uppercase tracking-widest hover:bg-[#5A1224] transition-colors duration-300 border border-transparent hover:border-gold"
@@ -105,6 +102,9 @@ export function Navbar() {
                   {link.name}
                 </Link>
               ))}
+              <div onClick={() => setMobileMenuOpen(false)}>
+                <CartBadge />
+              </div>
               <Link
                 href="/reservations"
                 onClick={() => setMobileMenuOpen(false)}
