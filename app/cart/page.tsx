@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useCartStore } from "@/features/cart/store";
-import { Minus, Plus, Trash2, ArrowRight, CreditCard, ShieldCheck } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowRight, CreditCard, ShieldCheck, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function CartPage() {
@@ -10,6 +10,12 @@ export default function CartPage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: 'percent' | 'flat'; value: number } | null>(null);
+  const [couponError, setCouponError] = useState("");
 
   React.useEffect(() => {
     setMounted(true);
@@ -17,9 +23,35 @@ export default function CartPage() {
 
   const cartTotal = total();
   const tax = cartTotal * 0.08; // 8% tax mock
-  const finalTotal = cartTotal + tax;
+
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === 'percent') {
+      discountAmount = cartTotal * (appliedCoupon.value / 100);
+    } else {
+      discountAmount = appliedCoupon.value;
+    }
+  }
+
+  // Prevent negative total
+  const finalTotal = Math.max(0, cartTotal - discountAmount + tax);
 
   if (!mounted) return null;
+
+  const handleApplyCoupon = () => {
+    setCouponError("");
+    const code = couponCode.toUpperCase().trim();
+    if (code === "SAVE10") {
+      setAppliedCoupon({ code, type: 'percent', value: 10 });
+    } else if (code === "WELCOME20") {
+      setAppliedCoupon({ code, type: 'percent', value: 20 });
+    } else if (code === "FLAT50") {
+      setAppliedCoupon({ code, type: 'flat', value: 50 });
+    } else {
+      setAppliedCoupon(null);
+      setCouponError("Invalid coupon code");
+    }
+  };
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
@@ -33,7 +65,8 @@ export default function CartPage() {
       finalTotal
     );
 
-    if (res.success) {
+    if (res.success && res.orderId) {
+      setOrderId(res.orderId);
       setIsCheckingOut(false);
       setPaymentSuccess(true);
       clearCart();
@@ -52,9 +85,14 @@ export default function CartPage() {
           </div>
           <h2 className="text-3xl font-bold mb-4">Order Confirmed!</h2>
           <p className="text-gray-400 mb-8">Your payment was successful. The kitchen has started preparing your culinary experience.</p>
-          <a href="/menu" className="block w-full py-3 bg-white text-black font-medium rounded-xl hover:bg-gray-200 transition-colors">
-            Back to Menu
-          </a>
+          <div className="space-y-4">
+            <a href={`/order/${orderId}`} className="block w-full py-3 bg-white text-black font-medium rounded-xl hover:bg-gray-200 transition-colors">
+              Track Your Order
+            </a>
+            <a href="/menu" className="block w-full py-3 bg-transparent border border-white/20 text-white font-medium rounded-xl hover:bg-white/5 transition-colors">
+              Back to Menu
+            </a>
+          </div>
         </motion.div>
       </div>
     );
@@ -113,8 +151,33 @@ export default function CartPage() {
             </AnimatePresence>
           </div>
 
-          {/* Order Summary */}
-          <div className="w-full lg:w-1/3">
+          {/* Order Summary & Coupons */}
+          <div className="w-full lg:w-1/3 space-y-6">
+            {/* Coupon Code Section */}
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+              <h3 className="text-lg font-bold mb-4 flex items-center">
+                <Tag className="w-4 h-4 mr-2" /> Coupon Code
+              </h3>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="Enter code"
+                  className="flex-1 px-4 py-2 bg-black/50 border border-white/10 rounded-xl focus:outline-none focus:border-white/30 text-white text-sm"
+                />
+                <button 
+                  onClick={handleApplyCoupon}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-sm font-medium transition-colors"
+                >
+                  Apply
+                </button>
+              </div>
+              {couponError && <p className="text-red-400 text-xs mt-2">{couponError}</p>}
+              {appliedCoupon && <p className="text-green-400 text-xs mt-2">Coupon '{appliedCoupon.code}' applied!</p>}
+            </div>
+
+            {/* Order Summary */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-8 sticky top-24">
               <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
               
@@ -123,6 +186,12 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span className="text-white">${cartTotal.toFixed(2)}</span>
                 </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between text-green-400">
+                    <span>Discount ({appliedCoupon.code})</span>
+                    <span>-${discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-gray-400">
                   <span>Taxes (8%)</span>
                   <span className="text-white">${tax.toFixed(2)}</span>

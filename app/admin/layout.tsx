@@ -1,8 +1,27 @@
 import React from "react";
-import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users } from "lucide-react";
+import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users, LogOut } from "lucide-react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { neon } from "@neondatabase/serverless";
+
+function getDb() {
+  const url = process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED || "";
+  return neon(url);
+}
 
 // Auth temporarily bypassed — admin is accessible directly for demo
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("admin_session");
+
+  if (session?.value !== "authenticated") {
+    redirect("/admin/login");
+  }
+
+  const sql = getDb();
+  const result = await sql`SELECT COUNT(*) as count FROM "Order" WHERE status = 'PENDING'`;
+  const pendingOrders = result[0]?.count || 0;
+
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden">
       {/* Sidebar */}
@@ -15,8 +34,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <a href="/admin" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition">
             <LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard
           </a>
-          <a href="/admin/orders" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition">
-            <ShoppingBag className="w-5 h-5 mr-3" /> Orders
+          <a href="/admin/orders" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition justify-between">
+            <div className="flex items-center">
+              <ShoppingBag className="w-5 h-5 mr-3" /> Orders
+            </div>
+            {pendingOrders > 0 && (
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                ● {pendingOrders}
+              </span>
+            )}
           </a>
           <a href="/admin/reservations" className="flex items-center px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition">
             <Users className="w-5 h-5 mr-3" /> Reservations
@@ -29,6 +55,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="p-4 border-t border-white/10">
           <a href="/" className="flex items-center w-full px-4 py-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition text-sm">
             ← Back to Website
+          </a>
+          <a href="/api/admin/logout" className="flex items-center w-full px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition text-sm mt-2">
+            <LogOut className="w-4 h-4 mr-2" /> Logout
           </a>
         </div>
       </aside>
